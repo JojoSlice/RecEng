@@ -17,4 +17,4 @@ app.UseHttpsRedirection();
 
 app.Run();
 
-
+app.MapPost("/auth/register", Register.Handle);
