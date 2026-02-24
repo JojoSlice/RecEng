@@ -1,4 +1,5 @@
 using api.Data;
+using api.Features.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
