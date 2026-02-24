@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Flutter
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.g.dart
+
+# IDE
+.idea/
+.vscode/
+
+# Miljövariabler
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
