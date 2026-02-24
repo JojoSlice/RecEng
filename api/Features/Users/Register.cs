@@ -6,11 +6,16 @@ public static class Register
 {
     public record Request(string Username, string Password);
 
+    public static void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapPost("/api/auth/register", Handle);
+    }
+
     public static async Task<IResult> Handle(Request req, AppDbContext db)
     {
         var exist = await db.Users.AnyAsync(u => u.Username == req.Username);
 
-        if(exist)
+        if (exist)
             return Results.Conflict("Username already taken");
 
         var hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
