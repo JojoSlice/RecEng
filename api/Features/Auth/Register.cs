@@ -1,6 +1,7 @@
 using api.Data;
+using api.Features.Users;
 
-namespace api.Features.Users;
+namespace api.Features.Auth;
 
 public static class Register
 {

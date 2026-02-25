@@ -1,7 +1,6 @@
 using System.Text;
 using api.Data;
 using api.Features.Auth;
-using api.Features.Users;
 using api.Options;
 
 var builder = WebApplication.CreateBuilder(args);
