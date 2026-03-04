@@ -75,3 +75,5 @@ Login.MapEndpoint(app);
 Refresh.MapEndpoint(app);
 
 app.Run();
+
+public partial class Program { }
