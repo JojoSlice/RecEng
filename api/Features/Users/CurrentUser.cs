@@ -5,7 +5,7 @@ namespace api.Features.Users;
 
 public static class CurrentUser
 {
-    public record Response(int Id, string Username);
+    public record Response(Guid Id, string Username);
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -20,7 +20,7 @@ public static class CurrentUser
         if (string.IsNullOrEmpty(idClaim) || string.IsNullOrEmpty(usernameClaim))
             return Results.Unauthorized();
 
-        if (!int.TryParse(idClaim, out int id))
+        if (!Guid.TryParse(idClaim, out Guid id))
             return Results.Unauthorized();
 
         return Results.Ok(new Response(id, usernameClaim));
