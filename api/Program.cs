@@ -2,11 +2,20 @@ using System.Text;
 using api.Data;
 using api.Features.Auth;
 using api.Options;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+);
+
+builder.Host.UseSerilog(
+    (context, services, configuration) =>
+        configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
 );
 
 builder
@@ -64,6 +73,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) { }
 
 app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
