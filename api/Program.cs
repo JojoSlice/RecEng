@@ -53,15 +53,8 @@ builder
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine($"[JWT] Auth failed: {context.Exception}");
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}");
-                Console.WriteLine(
-                    $"[JWT] Token validated. Claims: {string.Join(", ", claims ?? [])}"
-                );
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(context.Exception, "JWT authentication failed");
                 return Task.CompletedTask;
             },
         };

@@ -24,7 +24,7 @@ public static class Login
         Request req,
         AppDbContext db,
         IOptions<JwtOptions> jwtOptions,
-        HttpContext httpContext
+        ILogger<AppDbContext> logger
     )
     {
         var jwt = jwtOptions.Value;
@@ -34,11 +34,13 @@ public static class Login
 
         if (user is null)
         {
+            logger.LogWarning("Login failed, user {Username} not found", username);
             return Results.Unauthorized();
         }
 
         if (!BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash))
         {
+            logger.LogWarning("Login failed, invalid password for user {Username}", username);
             return Results.Unauthorized();
         }
 
@@ -52,6 +54,8 @@ public static class Login
         );
         db.RefreshTokens.Add(refreshTokenEntity);
         await db.SaveChangesAsync();
+
+        logger.LogInformation("User {Username} logged in", username);
 
         return Results.Ok(new Response(accessToken, refreshToken));
     }

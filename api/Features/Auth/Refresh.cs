@@ -19,7 +19,7 @@ public static class Refresh
         Request req,
         AppDbContext db,
         IOptions<JwtOptions> jwtOptions,
-        HttpContext httpContext
+        ILogger<AppDbContext> logger
     )
     {
         var jwt = jwtOptions.Value;
@@ -30,11 +30,17 @@ public static class Refresh
         );
 
         if (storedToken is null || !storedToken.IsActive)
+        {
+            logger.LogWarning("Token refresh failed, invalid or expired refresh token");
             return Results.Unauthorized();
+        }
 
         var user = await db.Users.FindAsync(storedToken.UserId);
         if (user is null)
+        {
+            logger.LogWarning("Token refresh failed, user {UserId} not found", storedToken.UserId);
             return Results.Unauthorized();
+        }
 
         var (newRefreshToken, newRefreshTokenHash) = Login.GenerateRefreshToken();
 
@@ -49,6 +55,8 @@ public static class Refresh
         await db.SaveChangesAsync();
 
         var accessToken = Login.GenerateAccessToken(user, jwt);
+
+        logger.LogInformation("Token refreshed for user {Username}", user.Username);
 
         return Results.Ok(new Response(accessToken, newRefreshToken));
     }
