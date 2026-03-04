@@ -1,5 +1,6 @@
 using api.Features.Auth;
 using api.Features.Users;
+using api.Features.Videos;
 
 namespace api.Data;
 
@@ -10,4 +11,5 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Video> Videos => Set<Video>();
 }
