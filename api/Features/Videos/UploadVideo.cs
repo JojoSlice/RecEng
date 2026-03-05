@@ -30,6 +30,15 @@ public static class UploadVideo
         if (!Guid.TryParse(idClaim, out Guid id))
             return Results.Unauthorized();
 
+        var allowedExtensions = new[] { ".mp4", ".webm", ".mov" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+
+        if (!allowedExtensions.Contains(extension))
+        {
+            logger.LogWarning("Upload failed, invalid file type {Extension} for video {Title}", extension, title);
+            return Results.BadRequest("Invalid file type. Allowed: .mp4, .webm, .mov");
+        }
+
         var exist = await db.Videos.AnyAsync(v => v.Title == title);
 
         if (exist)
