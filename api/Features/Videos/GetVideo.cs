@@ -9,9 +9,9 @@ public static class GetVideo
         app.MapGet("/api/videos/{id}", Handle);
     }
 
-    public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)
+    public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<GetVideo> logger)
     {
-        var video = await db.Videos.FirstOrDefaultAsync(v => v.Id == id);
+        var video = await db.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id);
         
         if(video is null)
         {
@@ -20,7 +20,7 @@ public static class GetVideo
         }
 
         logger.LogInformation("GetVideo Id: {Id} returned", video.Id);
-        return Results.Ok(video);
+        return Results.Ok(VideoResponse.From(video));
     }
 }
 

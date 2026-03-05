@@ -73,6 +73,8 @@ app.UseAuthorization();
 Register.MapEndpoint(app);
 Login.MapEndpoint(app);
 Refresh.MapEndpoint(app);
+GetVideos.MapEndpoint(app);
+GetVideo.MapEndpoint(app);
 
 app.Run();
 
