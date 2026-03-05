@@ -9,7 +9,7 @@ public static class GetVideos
         app.MapGet("/api/videos", Handle);
     }
 
-    public static async Task<IResult> Handle(AppDbContext db, ILogger<GetVideos> logger)
+    public static async Task<IResult> Handle(AppDbContext db, ILogger<AppDbContext> logger)
     {
         var videos = await db.Videos.Include(v => v.Tags).ToListAsync();
         logger.LogInformation("Get Videos, Count: {Count}", videos.Count);

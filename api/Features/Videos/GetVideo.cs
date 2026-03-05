@@ -9,7 +9,7 @@ public static class GetVideo
         app.MapGet("/api/videos/{id}", Handle);
     }
 
-    public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<GetVideo> logger)
+    public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)
     {
         var video = await db.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id);
         
