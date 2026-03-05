@@ -75,6 +75,7 @@ Login.MapEndpoint(app);
 Refresh.MapEndpoint(app);
 GetVideos.MapEndpoint(app);
 GetVideo.MapEndpoint(app);
+StreamVideo.MapEndpoint(app);
 
 app.Run();
 
