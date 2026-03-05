@@ -1,0 +1,31 @@
+import 'dart:convert';
+
+import 'package:client/services/api_client.dart';
+import 'package:client/models/auth.dart';
+
+class AuthService {
+  final ApiClient client;
+  AuthService(this.client);
+
+  Future<AuthResponse> login(String username, String password) async {
+    final res = await client.post('/api/auth/login', {
+      'username': username,
+      'password': password,
+    });
+    if (res.statusCode != 200) throw Exception('Login failed');
+    final data = AuthResponse.fromJson(jsonDecode(res.body));
+    client.accessToken = data.accessToken;
+    return data;
+  }
+
+  Future<AuthResponse> register(String username, String password) async {
+    final res = await client.post('/api/auth/register', {
+      'username': username,
+      'password': password,
+    });
+    if (res.statusCode != 201) throw Exception('Register failed');
+    final data = AuthResponse.fromJson(jsonDecode(res.body));
+    client.accessToken = data.accessToken;
+    return data;
+  }
+}
