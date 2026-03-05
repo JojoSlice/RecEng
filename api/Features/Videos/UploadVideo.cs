@@ -13,6 +13,8 @@ public static class UploadVideo
 
     public static async Task<IResult> Handle(
         string title,
+        string description,
+        List<string> tags,
         IFormFile file,
         AppDbContext db,
         ClaimsPrincipal user,
@@ -55,7 +57,19 @@ public static class UploadVideo
 
         try
         {
-            var video = new Video(title, filePath, id);
+            var tagNames = tags.Select(t => t.ToLowerInvariant()).Distinct().ToList();
+            var existingTags = await db.Tags
+                .Where(t => tagNames.Contains(t.Name))
+                .ToListAsync();
+
+            var existingTagNames = existingTags.Select(t => t.Name).ToHashSet();
+            var newTags = tagNames
+                .Where(name => !existingTagNames.Contains(name))
+                .Select(name => new Tag(name))
+                .ToList();
+
+            var video = new Video(title, description, filePath, id);
+            video.Tags.AddRange(existingTags.Concat(newTags));
             db.Videos.Add(video);
             await db.SaveChangesAsync();
 
