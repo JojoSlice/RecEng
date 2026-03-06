@@ -1,16 +1,15 @@
-import 'package:client/screens/register_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
-class LoginScreen extends StatefulWidget {
+class RegisterScreen extends StatefulWidget {
   final AuthService authService;
-  const LoginScreen({super.key, required this.authService});
+  const RegisterScreen({super.key, required this.authService});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _error;
@@ -23,14 +22,14 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      await widget.authService.login(
+      await widget.authService.register(
         _usernameController.text.trim(),
         _passwordController.text,
       );
@@ -58,10 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   NeumorphicText(
                     'RecEng',
-                    style: const NeumorphicStyle(
-                      depth: 6,
-                      intensity: 0.9,
-                    ),
+                    style: const NeumorphicStyle(depth: 6, intensity: 0.9),
                     textStyle: NeumorphicTextStyle(
                       fontSize: 52,
                       fontWeight: FontWeight.w900,
@@ -126,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             vertical: 14,
                           ),
                         ),
-                        onSubmitted: (_) => _login(),
+                        onSubmitted: (_) => _register(),
                       ),
                     ),
                   ),
@@ -136,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   const SizedBox(height: 24),
                   NeumorphicButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: _isLoading ? null : _register,
                     style: NeumorphicStyle(
                       depth: 4,
                       boxShape: NeumorphicBoxShape.roundRect(
@@ -156,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : const Text(
-                                'LOGIN',
+                                'REGISTER',
                                 style: TextStyle(
                                   color: Color(0xFFB08968),
                                   fontWeight: FontWeight.w500,
@@ -164,37 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   letterSpacing: 4,
                                 ),
                               ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  NeumorphicButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            RegisterScreen(authService: widget.authService),
-                      ),
-                    ),
-                    style: NeumorphicStyle(
-                      depth: 2,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(12),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: const SizedBox(
-                      width: double.infinity,
-                      child: Center(
-                        child: Text(
-                          'REGISTER',
-                          style: TextStyle(
-                            color: Color(0xFFB08968),
-                            fontWeight: FontWeight.w400,
-                            fontSize: 16,
-                            letterSpacing: 4,
-                          ),
-                        ),
                       ),
                     ),
                   ),
@@ -207,4 +172,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
