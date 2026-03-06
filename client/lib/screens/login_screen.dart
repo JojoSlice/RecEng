@@ -35,9 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       // TODO: navigate to home screen
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Invalid username or password');
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

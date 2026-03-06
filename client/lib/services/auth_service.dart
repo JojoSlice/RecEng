@@ -13,6 +13,7 @@ class AuthService {
       'username': username,
       'password': password,
     });
+    if (res.statusCode == 401) throw Exception('Invalid username or password');
     if (res.statusCode != 200) throw Exception('Login failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
     client.accessToken = data.accessToken;
@@ -25,7 +26,9 @@ class AuthService {
       'username': username,
       'password': password,
     });
-    if (res.statusCode != 201) throw Exception('Register failed');
+    if (res.statusCode == 409) throw Exception('Username already taken');
+    if (res.statusCode == 400) throw Exception('Username and password are required');
+    if (res.statusCode != 201) throw Exception('Registration failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
     client.accessToken = data.accessToken;
     await storage.saveTokens(data.accessToken, data.refreshToken);
