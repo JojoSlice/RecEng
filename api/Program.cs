@@ -81,6 +81,7 @@ app.UseAuthorization();
 Register.MapEndpoint(app);
 Login.MapEndpoint(app);
 Refresh.MapEndpoint(app);
+Logout.MapEndpoint(app);
 GetVideos.MapEndpoint(app);
 GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
