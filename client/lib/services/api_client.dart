@@ -7,7 +7,7 @@ class ApiClient {
 
   Map<String, String> get headers => {
     'Content-Type': 'application/json',
-    if (accessToken != null) 'Authorization': 'Berear $accessToken',
+    if (accessToken != null) 'Authorization': 'Bearer $accessToken',
   };
 
   Future<http.Response> get(String path) =>
