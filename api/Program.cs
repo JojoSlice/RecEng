@@ -1,6 +1,7 @@
 using System.Text;
 using api.Data;
 using api.Features.Auth;
+using api.Features.Videos;
 using api.Options;
 using Serilog;
 
@@ -57,6 +58,13 @@ builder
                 logger.LogWarning(context.Exception, "JWT authentication failed");
                 return Task.CompletedTask;
             },
+            OnTokenValidated = context =>
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}");
+                logger.LogInformation($"[JWT] Token validated. Claims: {string.Join(", ", claims ?? [])}");
+                return Task.CompletedTask;
+            },
         };
     });
 
@@ -78,5 +86,3 @@ GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
 
 app.Run();
-
-public partial class Program { }
