@@ -1,11 +1,12 @@
 import 'dart:convert';
-
+import 'secure_storage_service.dart';
 import 'package:client/services/api_client.dart';
 import 'package:client/models/auth.dart';
 
 class AuthService {
   final ApiClient client;
-  AuthService(this.client);
+  final SecureStorageService storage;
+  AuthService(this.client, this.storage);
 
   Future<AuthResponse> login(String username, String password) async {
     final res = await client.post('/api/auth/login', {
@@ -15,6 +16,7 @@ class AuthService {
     if (res.statusCode != 200) throw Exception('Login failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
     client.accessToken = data.accessToken;
+    await storage.saveTokens(data.accessToken, data.refreshToken);
     return data;
   }
 
@@ -26,6 +28,21 @@ class AuthService {
     if (res.statusCode != 201) throw Exception('Register failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
     client.accessToken = data.accessToken;
+    await storage.saveTokens(data.accessToken, data.refreshToken);
     return data;
+  }
+
+  Future<void> logout() async {
+    final refreshToken = await storage.getRefreshToken();
+    if (refreshToken != null) {
+      await client.post('/api/auth/logout', {'refreshToken': refreshToken});
+    }
+    client.accessToken = null;
+    await storage.logout();
+  }
+
+  Future<void> restoreSession() async {
+    final token = await storage.getAccessToken();
+    if (token != null) client.accessToken = token;
   }
 }
