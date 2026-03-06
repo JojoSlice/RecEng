@@ -8,8 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final client = ApiClient();
   final storage = SecureStorageService();
+  final client = ApiClient(storage);
   final authService = AuthService(client, storage);
 
   await authService.restoreSession();
