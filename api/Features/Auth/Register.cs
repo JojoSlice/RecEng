@@ -21,16 +21,20 @@ public static class Register
         ILogger<AppDbContext> logger
     )
     {
-        var exist = await db.Users.AnyAsync(u => u.Username == req.Username);
+        if (string.IsNullOrWhiteSpace(req.Username) || string.IsNullOrWhiteSpace(req.Password))
+            return Results.BadRequest("Username and password are required");
+
+        var username = req.Username.Trim();
+        var exist = await db.Users.AnyAsync(u => u.Username.ToLower() == username.ToLowerInvariant());
 
         if (exist)
         {
-            logger.LogWarning("Registration failed, username {Username} already taken", req.Username);
+            logger.LogWarning("Registration failed, username {Username} already taken", username);
             return Results.Conflict("Username already taken");
         }
 
         var hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
-        var user = new User(req.Username, hash);
+        var user = new User(username, hash);
 
         db.Users.Add(user);
         await db.SaveChangesAsync();
