@@ -46,9 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return NeumorphicBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
+      child: SafeArea(
+        child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
             child: ConstrainedBox(
@@ -58,10 +57,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   NeumorphicText(
                     'RecEng',
-                    style: const NeumorphicStyle(depth: 4),
+                    style: const NeumorphicStyle(
+                      depth: 6,
+                      intensity: 0.9,
+                    ),
                     textStyle: NeumorphicTextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 52,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 8,
                     ),
                   ),
                   const SizedBox(height: 48),
@@ -72,14 +75,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         BorderRadius.circular(12),
                       ),
                     ),
-                    child: TextField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        hintText: 'Username',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: TextField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          hintText: 'Username',
+                          hintStyle: TextStyle(
+                            color: Color(0xFFB08968),
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 1,
+                          ),
+                          border: InputBorder.none,
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -92,18 +105,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         BorderRadius.circular(12),
                       ),
                     ),
-                    child: TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        hintText: 'Password',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          hintText: 'Password',
+                          hintStyle: TextStyle(
+                            color: Color(0xFFB08968),
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 1,
+                          ),
+                          border: InputBorder.none,
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                         ),
+                        onSubmitted: (_) => _login(),
                       ),
-                      onSubmitted: (_) => _login(),
                     ),
                   ),
                   if (_error != null) ...[
@@ -132,8 +155,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : const Text(
-                                'Login',
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                                'LOGIN',
+                                style: TextStyle(
+                                  color: Color(0xFFB08968),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  letterSpacing: 4,
+                                ),
                               ),
                       ),
                       // TODO: navigate register screen
@@ -148,3 +176,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
