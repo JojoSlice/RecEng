@@ -74,9 +74,9 @@ public static class DevSeeder
             var video = new Video(meta.Title, meta.Description, destPath, seedUser.Id);
             video.Tags.AddRange(existingTags.Concat(newTags));
             db.Videos.Add(video);
+            await db.SaveChangesAsync();
         }
 
-        await db.SaveChangesAsync();
         logger.LogInformation("[DevSeeder] Seeded {Count} videos", videoFiles.Length);
     }
 }

@@ -24,7 +24,7 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=receng;Username=receng;Password=receng"
     volumes:
-      - ./devAssets:/app/devAssets:ro
+      - ./devAssets:/devAssets:ro
     depends_on:
       postgres:
         condition: service_healthy
