@@ -1,6 +1,8 @@
 import 'package:client/screens/register_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:client/screens/feed_screen.dart';
+import 'package:client/services/video_service.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService authService;
@@ -36,7 +38,17 @@ class _LoginScreenState extends State<LoginScreen> {
         _usernameController.text.trim(),
         _passwordController.text,
       );
-      // TODO: navigate to home screen
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FeedScreen(
+              videoService: VideoService(widget.authService.client),
+              authService: widget.authService,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
@@ -60,10 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   NeumorphicText(
                     'RecEng',
-                    style: const NeumorphicStyle(
-                      depth: 6,
-                      intensity: 0.9,
-                    ),
+                    style: const NeumorphicStyle(depth: 6, intensity: 0.9),
                     textStyle: NeumorphicTextStyle(
                       fontSize: 52,
                       fontWeight: FontWeight.w900,
@@ -141,72 +150,72 @@ class _LoginScreenState extends State<LoginScreen> {
                     onEnter: (_) => setState(() => _isLoginHovered = true),
                     onExit: (_) => setState(() => _isLoginHovered = false),
                     child: NeumorphicButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: NeumorphicStyle(
-                      depth: _isLoginHovered ? 2 : 4,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(12),
+                      onPressed: _isLoading ? null : _login,
+                      style: NeumorphicStyle(
+                        depth: _isLoginHovered ? 2 : 4,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Center(
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'LOGIN',
+                                  style: TextStyle(
+                                    color: Color(0xFFB08968),
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16,
+                                    letterSpacing: 4,
+                                  ),
+                                ),
+                        ),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Center(
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'LOGIN',
-                                style: TextStyle(
-                                  color: Color(0xFFB08968),
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  letterSpacing: 4,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
                   ),
                   const SizedBox(height: 16),
                   MouseRegion(
                     onEnter: (_) => setState(() => _isRegisterHovered = true),
                     onExit: (_) => setState(() => _isRegisterHovered = false),
                     child: NeumorphicButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            RegisterScreen(authService: widget.authService),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              RegisterScreen(authService: widget.authService),
+                        ),
                       ),
-                    ),
-                    style: NeumorphicStyle(
-                      depth: _isRegisterHovered ? 1 : 2,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(12),
+                      style: NeumorphicStyle(
+                        depth: _isRegisterHovered ? 1 : 2,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: const SizedBox(
-                      width: double.infinity,
-                      child: Center(
-                        child: Text(
-                          'REGISTER',
-                          style: TextStyle(
-                            color: Color(0xFFB08968),
-                            fontWeight: FontWeight.w400,
-                            fontSize: 16,
-                            letterSpacing: 4,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: const SizedBox(
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
+                            'REGISTER',
+                            style: TextStyle(
+                              color: Color(0xFFB08968),
+                              fontWeight: FontWeight.w400,
+                              fontSize: 16,
+                              letterSpacing: 4,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                   ),
                 ],
               ),
@@ -217,4 +226,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
