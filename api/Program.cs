@@ -69,11 +69,21 @@ builder
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:8080")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+    )
+);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment()) { }
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
