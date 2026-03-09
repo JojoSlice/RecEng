@@ -15,6 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   String? _error;
   bool _isLoading = false;
+  bool _isLoginHovered = false;
+  bool _isRegisterHovered = false;
 
   @override
   void dispose() {
@@ -135,10 +137,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(_error!, style: const TextStyle(color: Colors.red)),
                   ],
                   const SizedBox(height: 24),
-                  NeumorphicButton(
+                  MouseRegion(
+                    onEnter: (_) => setState(() => _isLoginHovered = true),
+                    onExit: (_) => setState(() => _isLoginHovered = false),
+                    child: NeumorphicButton(
                     onPressed: _isLoading ? null : _login,
                     style: NeumorphicStyle(
-                      depth: 4,
+                      depth: _isLoginHovered ? 2 : 4,
                       boxShape: NeumorphicBoxShape.roundRect(
                         BorderRadius.circular(12),
                       ),
@@ -167,8 +172,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                  ),
                   const SizedBox(height: 16),
-                  NeumorphicButton(
+                  MouseRegion(
+                    onEnter: (_) => setState(() => _isRegisterHovered = true),
+                    onExit: (_) => setState(() => _isRegisterHovered = false),
+                    child: NeumorphicButton(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -177,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     style: NeumorphicStyle(
-                      depth: 2,
+                      depth: _isRegisterHovered ? 1 : 2,
                       boxShape: NeumorphicBoxShape.roundRect(
                         BorderRadius.circular(12),
                       ),
@@ -197,6 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                  ),
                   ),
                 ],
               ),

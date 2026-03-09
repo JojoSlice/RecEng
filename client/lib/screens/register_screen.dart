@@ -14,6 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   String? _error;
   bool _isLoading = false;
+  bool _isRegisterHovered = false;
 
   @override
   void dispose() {
@@ -131,10 +132,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text(_error!, style: const TextStyle(color: Colors.red)),
                   ],
                   const SizedBox(height: 24),
-                  NeumorphicButton(
+                  MouseRegion(
+                    onEnter: (_) => setState(() => _isRegisterHovered = true),
+                    onExit: (_) => setState(() => _isRegisterHovered = false),
+                    child: NeumorphicButton(
                     onPressed: _isLoading ? null : _register,
                     style: NeumorphicStyle(
-                      depth: 4,
+                      depth: _isRegisterHovered ? 2 : 4,
                       boxShape: NeumorphicBoxShape.roundRect(
                         BorderRadius.circular(12),
                       ),
@@ -162,6 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                       ),
                     ),
+                  ),
                   ),
                 ],
               ),
