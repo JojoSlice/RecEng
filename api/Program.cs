@@ -80,7 +80,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment()) { }
+if (app.Environment.IsDevelopment())
+{
+    var devAssetsPath = Path.GetFullPath(
+        Path.Combine(app.Environment.ContentRootPath, "..", "devAssets")
+    );
+    await DevSeeder.SeedAsync(app.Services, devAssetsPath);
+}
 
 app.UseHttpsRedirection();
 app.UseCors();
