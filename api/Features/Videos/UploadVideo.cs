@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Data;
@@ -47,21 +48,35 @@ public static class UploadVideo
             return Results.Conflict("Title already taken");
         }
 
-        var filePath = Path.Combine(
-            "uploads",
-            $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}"
-        );
         Directory.CreateDirectory("uploads");
+        var fileId = Guid.NewGuid().ToString();
+        var tempPath = Path.Combine("uploads", $"{fileId}{extension}");
+        var outputPath = Path.Combine("uploads", $"{fileId}.mp4");
 
         try
         {
-            await using var stream = new FileStream(filePath, FileMode.Create);
+            await using var stream = new FileStream(tempPath, FileMode.Create);
             await file.CopyToAsync(stream);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to save file for video {Title}", title);
             return Results.Problem("Failed to save video file");
+        }
+
+        try
+        {
+            logger.LogInformation("Transcoding video {Title}", title);
+            await TranscodeAsync(tempPath, outputPath);
+            File.Delete(tempPath);
+            logger.LogInformation("Transcoding complete for video {Title}", title);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Transcoding failed for video {Title}", title);
+            File.Delete(tempPath);
+            File.Delete(outputPath);
+            return Results.Problem("Failed to process video");
         }
 
         try
@@ -77,7 +92,7 @@ public static class UploadVideo
                 .Select(name => new Tag(name))
                 .ToList();
 
-            var video = new Video(title, description, filePath, id);
+            var video = new Video(title, description, outputPath, id);
             video.Tags.AddRange(existingTags.Concat(newTags));
             db.Videos.Add(video);
             await db.SaveChangesAsync();
@@ -89,8 +104,30 @@ public static class UploadVideo
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to save video {Title} to database, cleaning up file", title);
-            File.Delete(filePath);
+            File.Delete(outputPath);
             return Results.Problem("Failed to save video");
+        }
+    }
+
+    private static async Task TranscodeAsync(string input, string output)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = "ffmpeg",
+            Arguments = $"-i \"{input}\" -c:v libx264 -c:a aac -movflags +faststart -y \"{output}\"",
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        using var process = Process.Start(psi) ?? throw new Exception("Failed to start ffmpeg");
+        var errorOutput = process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+
+        if (process.ExitCode != 0)
+        {
+            var error = await errorOutput;
+            throw new Exception($"ffmpeg exited with code {process.ExitCode}: {error}");
         }
     }
 }
