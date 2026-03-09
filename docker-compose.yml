@@ -25,6 +25,7 @@ services:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=receng;Username=receng;Password=receng"
     volumes:
       - ./devAssets:/devAssets:ro
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,3 +39,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

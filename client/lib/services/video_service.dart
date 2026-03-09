@@ -20,4 +20,6 @@ class VideoService {
     if (res.statusCode != 200) throw Exception('Failed to load video');
     return Video.fromJson(jsonDecode(res.body));
   }
+
+  String getStreamUrl(String id) => '${client.baseUrl}/api/videos/$id/stream';
 }

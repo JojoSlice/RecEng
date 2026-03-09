@@ -35,8 +35,8 @@ public static class StreamVideo
 
         logger.LogInformation("Streaming video {Id} from {Path}", id, video.FilePath);
 
-        var stream = File.OpenRead(video.FilePath);
-        return Results.Stream(stream, contentType: contentType);
+        var absolutePath = Path.GetFullPath(video.FilePath);
+        return TypedResults.PhysicalFile(absolutePath, contentType: contentType, enableRangeProcessing: true);
     }
 }
 

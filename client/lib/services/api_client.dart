@@ -3,7 +3,7 @@ import 'package:client/services/secure_storage_service.dart';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  final String baseUrl = "http://localhost:5000";
+  final String baseUrl = "http://localhost:8080";
   final SecureStorageService storage;
   String? accessToken;
 
