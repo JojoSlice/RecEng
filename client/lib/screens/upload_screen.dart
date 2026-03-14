@@ -67,8 +67,10 @@ class _UploadScreenState extends State<UploadScreen> {
           .where((t) => t.isNotEmpty)
           .toList();
 
+      final bytes = await _selectedVideo!.readAsBytes();
+
       await widget.videoService.uploadVideo(
-        filePath: _selectedVideo!.path,
+        fileBytes: bytes,
         fileName: _selectedVideo!.name,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),

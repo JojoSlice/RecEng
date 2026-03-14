@@ -25,7 +25,7 @@ class VideoService {
   String getStreamUrl(String id) => '${client.baseUrl}/api/videos/$id/stream';
 
   Future<void> uploadVideo({
-    required String filePath,
+    required List<int> fileBytes,
     required String fileName,
     required String title,
     required String description,
@@ -40,10 +40,10 @@ class VideoService {
 
     request.fields['title'] = title;
     request.fields['description'] = description;
-    for (final tag in tags) {
-      request.files.add(http.MultipartFile.fromString('tags', tag));
+    for (var i = 0; i < tags.length; i++) {
+      request.fields['tags[$i]'] = tags[i];
     }
-    request.files.add(await http.MultipartFile.fromPath('file', filePath, filename: fileName));
+    request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: fileName));
 
     final response = await request.send();
     if (response.statusCode != 201) {

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace api.Features.Videos;
 
@@ -13,9 +14,9 @@ public static class UploadVideo
     }
 
     public static async Task<IResult> Handle(
-        string title,
-        string description,
-        List<string> tags,
+        [FromForm] string title,
+        [FromForm] string description,
+        [FromForm] List<string> tags,
         IFormFile file,
         AppDbContext db,
         ClaimsPrincipal user,
@@ -50,7 +51,7 @@ public static class UploadVideo
 
         Directory.CreateDirectory("uploads");
         var fileId = Guid.NewGuid().ToString();
-        var tempPath = Path.Combine("uploads", $"{fileId}{extension}");
+        var tempPath = Path.Combine("uploads", $"{fileId}_temp{extension}");
         var outputPath = Path.Combine("uploads", $"{fileId}.mp4");
 
         try
@@ -81,7 +82,7 @@ public static class UploadVideo
 
         try
         {
-            var tagNames = tags.Select(t => t.ToLowerInvariant()).Distinct().ToList();
+            var tagNames = (tags ?? []).Select(t => t.ToLowerInvariant()).Distinct().ToList();
             var existingTags = await db.Tags
                 .Where(t => tagNames.Contains(t.Name))
                 .ToListAsync();
