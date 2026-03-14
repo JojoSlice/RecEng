@@ -107,5 +107,6 @@ Logout.MapEndpoint(app);
 GetVideos.MapEndpoint(app);
 GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
+UploadVideo.MapEndpoint(app);
 
 app.Run();
