@@ -1,4 +1,6 @@
 import 'package:client/services/auth_service.dart';
+import 'package:client/screens/feed_screen.dart';
+import 'package:client/services/video_service.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -34,7 +36,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _usernameController.text.trim(),
         _passwordController.text,
       );
-      // TODO: navigate to home screen
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FeedScreen(
+              videoService: VideoService(widget.authService.client),
+              authService: widget.authService,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
