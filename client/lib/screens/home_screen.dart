@@ -1,4 +1,5 @@
 import 'package:client/screens/feed_screen.dart';
+import 'package:client/screens/upload_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -34,8 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     videoService: widget.videoService,
                     authService: widget.authService,
                   ),
-                  const Center(
-                    child: Text('Upload'),
+                  UploadScreen(
+                    videoService: widget.videoService,
+                    onUploadComplete: () => setState(() => _currentTab = 0),
                   ),
                 ],
               ),
