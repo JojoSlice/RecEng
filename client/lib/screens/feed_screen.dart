@@ -31,35 +31,31 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return NeumorphicBackground(
-      child: SafeArea(
-        child: FutureBuilder<List<Video>>(
-          future: _videosFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text(snapshot.error.toString()));
-            }
-            final videos = snapshot.data!;
-            return PageView.builder(
-              scrollDirection: Axis.vertical,
-              itemCount: videos.length,
-              onPageChanged: (index) => setState(() => _currentIndex = index),
-              itemBuilder: (context, index) {
-                return _VideoItem(
-                  key: ValueKey(videos[index].id),
-                  video: videos[index],
-                  streamUrl: widget.videoService.getStreamUrl(videos[index].id),
-                  accessToken: widget.videoService.client.accessToken,
-                  isActive: index == _currentIndex,
-                );
-              },
+    return FutureBuilder<List<Video>>(
+      future: _videosFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
+        }
+        final videos = snapshot.data!;
+        return PageView.builder(
+          scrollDirection: Axis.vertical,
+          itemCount: videos.length,
+          onPageChanged: (index) => setState(() => _currentIndex = index),
+          itemBuilder: (context, index) {
+            return _VideoItem(
+              key: ValueKey(videos[index].id),
+              video: videos[index],
+              streamUrl: widget.videoService.getStreamUrl(videos[index].id),
+              accessToken: widget.videoService.client.accessToken,
+              isActive: index == _currentIndex,
             );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -1,8 +1,8 @@
+import 'package:client/screens/home_screen.dart';
 import 'package:client/screens/register_screen.dart';
 import 'package:client/services/auth_service.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-import 'package:client/screens/feed_screen.dart';
 import 'package:client/services/video_service.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService authService;
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => FeedScreen(
+            builder: (_) => HomeScreen(
               videoService: VideoService(widget.authService.client),
               authService: widget.authService,
             ),
