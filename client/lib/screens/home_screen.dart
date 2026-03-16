@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTab = 0;
+  int _feedKey = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +33,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 index: _currentTab,
                 children: [
                   FeedScreen(
+                    key: ValueKey(_feedKey),
                     videoService: widget.videoService,
                     authService: widget.authService,
                   ),
                   UploadScreen(
                     videoService: widget.videoService,
-                    onUploadComplete: () => setState(() => _currentTab = 0),
+                    onUploadComplete: () => setState(() {
+                      _feedKey++;
+                      _currentTab = 0;
+                    }),
                   ),
                 ],
               ),
