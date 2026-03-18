@@ -1,9 +1,11 @@
+import 'package:client/models/uploader.dart';
+
 class Video {
   final String id;
   final String title;
   final String description;
   final List<String> tags;
-  final String uploadedBy;
+  final Uploader uploader;
   final DateTime createdAt;
 
   Video({
@@ -11,7 +13,7 @@ class Video {
     required this.title,
     required this.description,
     required this.tags,
-    required this.uploadedBy,
+    required this.uploader,
     required this.createdAt,
   });
 
@@ -20,7 +22,7 @@ class Video {
     title: json['title'],
     description: json['description'],
     tags: List<String>.from(json['tags']),
-    uploadedBy: json['uploadedBy'],
+    uploader: Uploader.fromJson(json['uploader']),
     createdAt: DateTime.parse(json['createdAt']),
   );
 }

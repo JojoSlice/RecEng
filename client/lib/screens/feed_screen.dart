@@ -50,6 +50,7 @@ class _FeedScreenState extends State<FeedScreen> {
               key: ValueKey(videos[index].id),
               video: videos[index],
               streamUrl: widget.videoService.getStreamUrl(videos[index].id),
+              baseUrl: widget.videoService.client.baseUrl,
               accessToken: widget.videoService.client.accessToken,
               isActive: index == _currentIndex,
             );
@@ -63,6 +64,7 @@ class _FeedScreenState extends State<FeedScreen> {
 class _VideoItem extends StatefulWidget {
   final Video video;
   final String streamUrl;
+  final String baseUrl;
   final String? accessToken;
   final bool isActive;
 
@@ -70,6 +72,7 @@ class _VideoItem extends StatefulWidget {
     super.key,
     required this.video,
     required this.streamUrl,
+    required this.baseUrl,
     required this.accessToken,
     required this.isActive,
   });
@@ -155,12 +158,39 @@ class _VideoItemState extends State<_VideoItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.white24,
+                      backgroundImage: NetworkImage(
+                        '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture',
+                        headers: widget.accessToken != null
+                            ? {'Authorization': 'Bearer ${widget.accessToken}'}
+                            : {},
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      widget.video.uploader.username,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.none,
+                        shadows: [Shadow(blurRadius: 4)],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 Text(
                   widget.video.title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.none,
                     shadows: [Shadow(blurRadius: 4)],
                   ),
                 ),
@@ -170,6 +200,7 @@ class _VideoItemState extends State<_VideoItem> {
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
+                    decoration: TextDecoration.none,
                     shadows: [Shadow(blurRadius: 4)],
                   ),
                   maxLines: 2,

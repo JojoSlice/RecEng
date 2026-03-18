@@ -25,15 +25,19 @@ public static class UpdateUserVideo
         if (string.IsNullOrEmpty(idClaim) || !Guid.TryParse(idClaim, out Guid userId))
             return Results.Unauthorized();
 
-        var video = await db.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id);
+        var result = await db.Videos
+            .Include(v => v.Tags)
+            .Where(v => v.Id == id)
+            .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
+            .FirstOrDefaultAsync();
 
-        if (video is null)
+        if (result is null)
         {
             logger.LogWarning("UpdateUserVideo failed, Video with Id: {Id} was not found", id);
             return Results.NotFound(new { message = "Video not found" });
         }
 
-        if (video.UploadedBy != userId)
+        if (result.Video.UploadedBy != userId)
         {
             logger.LogWarning("UpdateUserVideo failed, User {UserId} does not own Video {Id}", userId, id);
             return Results.Forbid();
@@ -47,11 +51,11 @@ public static class UpdateUserVideo
             .Select(name => new Tag(name))
             .ToList();
 
-        video.Update(request.Title, request.Description, existingTags.Concat(newTags).ToList());
+        result.Video.Update(request.Title, request.Description, existingTags.Concat(newTags).ToList());
         await db.SaveChangesAsync();
 
         logger.LogInformation("UpdateUserVideo Video {Id} updated by User {UserId}", id, userId);
-        return Results.Ok(VideoResponse.From(video));
+        return Results.Ok(VideoResponse.From(result.Video, result.Username));
     }
 
     public record UpdateUserVideoRequest(string Title, string Description, List<string>? Tags);

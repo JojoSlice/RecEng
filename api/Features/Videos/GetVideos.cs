@@ -11,10 +11,14 @@ public static class GetVideos
 
     public static async Task<IResult> Handle(AppDbContext db, ILogger<AppDbContext> logger)
     {
-        var videos = await db.Videos.Include(v => v.Tags).ToListAsync();
-        logger.LogInformation("Get Videos, Count: {Count}", videos.Count);
+        var results = await db.Videos
+            .Include(v => v.Tags)
+            .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
+            .ToListAsync();
 
-        return Results.Ok(videos.Select(VideoResponse.From));
+        logger.LogInformation("Get Videos, Count: {Count}", results.Count);
+
+        return Results.Ok(results.Select(r => VideoResponse.From(r.Video, r.Username)));
     }
 
 }

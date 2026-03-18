@@ -11,16 +11,20 @@ public static class GetVideo
 
     public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)
     {
-        var video = await db.Videos.Include(v => v.Tags).FirstOrDefaultAsync(v => v.Id == id);
-        
-        if(video is null)
+        var result = await db.Videos
+            .Include(v => v.Tags)
+            .Where(v => v.Id == id)
+            .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
+            .FirstOrDefaultAsync();
+
+        if (result is null)
         {
             logger.LogWarning("GetVideo failed, Video with Id: {Id} was not found", id);
-            return Results.NotFound(new { message = "Video not found"});
+            return Results.NotFound(new { message = "Video not found" });
         }
 
-        logger.LogInformation("GetVideo Id: {Id} returned", video.Id);
-        return Results.Ok(VideoResponse.From(video));
+        logger.LogInformation("GetVideo Id: {Id} returned", result.Video.Id);
+        return Results.Ok(VideoResponse.From(result.Video, result.Username));
     }
 }
 

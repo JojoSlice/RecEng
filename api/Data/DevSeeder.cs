@@ -61,7 +61,9 @@ public static class DevSeeder
             var destFileName = $"seed_{i + 1}{Path.GetExtension(videoFiles[i])}";
             var destPath = Path.Combine("uploads", destFileName);
 
-            File.Copy(videoFiles[i], destPath, overwrite: true);
+            await using (var src = new FileStream(videoFiles[i], FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true))
+            await using (var dst = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
+                await src.CopyToAsync(dst);
 
             var tagNames = meta.Tags.Select(t => t.ToLowerInvariant()).Distinct().ToList();
             var existingTags = await db.Tags.Where(t => tagNames.Contains(t.Name)).ToListAsync();
