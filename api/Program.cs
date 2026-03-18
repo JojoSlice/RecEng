@@ -1,6 +1,7 @@
 using System.Text;
 using api.Data;
 using api.Features.Auth;
+using api.Features.Users;
 using api.Features.Videos;
 using api.Options;
 using Serilog;
@@ -108,5 +109,6 @@ GetVideos.MapEndpoint(app);
 GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
 UploadVideo.MapEndpoint(app);
+GetUserVideos.MapEndpoint(app);
 
 app.Run();
