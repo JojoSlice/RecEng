@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -30,7 +32,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(d);
 
             services.AddScoped(_ => new AppDbContext(
-                new DbContextOptionsBuilder<AppDbContext>().UseSqlite(_connection).Options
+                new DbContextOptionsBuilder<AppDbContext>()
+                    .UseSqlite(_connection)
+                    .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+                    .Options
             ));
         });
 
