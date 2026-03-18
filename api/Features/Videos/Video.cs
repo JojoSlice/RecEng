@@ -20,4 +20,12 @@ public class Video
     public string FilePath { get; private set; } = null!;
     public Guid UploadedBy { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+
+    public void Update(string title, string description, List<Tag> tags)
+    {
+        Title = title;
+        Description = description;
+        Tags.Clear();
+        Tags.AddRange(tags);
+    }
 }

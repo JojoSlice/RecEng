@@ -110,5 +110,7 @@ GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
 UploadVideo.MapEndpoint(app);
 GetUserVideos.MapEndpoint(app);
+UpdateUserVideo.MapEndpoint(app);
+DeleteUserVideo.MapEndpoint(app);
 
 app.Run();
