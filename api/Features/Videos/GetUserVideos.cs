@@ -1,13 +1,12 @@
 using api.Data;
-using api.Features.Videos;
 
-namespace api.Features.Users;
+namespace api.Features.Videos;
 
 public static class GetUserVideos {
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/user/{id}/videos", Handle);
+        app.MapGet("/api/users/{id}/videos", Handle);
     }
 
 

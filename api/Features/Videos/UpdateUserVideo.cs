@@ -1,16 +1,15 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Data;
-using api.Features.Videos;
 using Microsoft.AspNetCore.Mvc;
 
-namespace api.Features.Users;
+namespace api.Features.Videos;
 
 public static class UpdateUserVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/user/videos/{id}", Handle).RequireAuthorization();
+        app.MapPut("/api/videos/{id}", Handle).RequireAuthorization();
     }
 
     public static async Task<IResult> Handle(

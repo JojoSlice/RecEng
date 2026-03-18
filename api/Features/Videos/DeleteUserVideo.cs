@@ -2,13 +2,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Data;
 
-namespace api.Features.Users;
+namespace api.Features.Videos;
 
 public static class DeleteUserVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/user/videos/{id}", Handle).RequireAuthorization();
+        app.MapDelete("/api/videos/{id}", Handle).RequireAuthorization();
     }
 
     public static async Task<IResult> Handle(
