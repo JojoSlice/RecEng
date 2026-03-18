@@ -14,5 +14,8 @@ public class User
     public Guid Id { get; private set; }
     public string Username { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
+    public string? ProfilePicturePath { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+
+    public void SetProfilePicture(string path) => ProfilePicturePath = path;
 }

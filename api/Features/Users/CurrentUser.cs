@@ -1,18 +1,19 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using api.Data;
 
 namespace api.Features.Users;
 
 public static class CurrentUser
 {
-    public record Response(Guid Id, string Username);
+    public record Response(Guid Id, string Username, bool HasProfilePicture);
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/users/me", Handle).RequireAuthorization();
     }
 
-    private static IResult Handle(ClaimsPrincipal user)
+    private static async Task<IResult> Handle(ClaimsPrincipal user, AppDbContext db)
     {
         var idClaim = user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         var usernameClaim = user.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value;
@@ -23,6 +24,11 @@ public static class CurrentUser
         if (!Guid.TryParse(idClaim, out Guid id))
             return Results.Unauthorized();
 
-        return Results.Ok(new Response(id, usernameClaim));
+        var dbUser = await db.Users.FindAsync(id);
+
+        if (dbUser is null)
+            return Results.Unauthorized();
+
+        return Results.Ok(new Response(id, usernameClaim, dbUser.ProfilePicturePath is not null));
     }
 }

@@ -112,5 +112,8 @@ UploadVideo.MapEndpoint(app);
 GetUserVideos.MapEndpoint(app);
 UpdateUserVideo.MapEndpoint(app);
 DeleteUserVideo.MapEndpoint(app);
+CurrentUser.MapEndpoint(app);
+UploadProfilePicture.MapEndpoint(app);
+GetProfilePicture.MapEndpoint(app);
 
 app.Run();
