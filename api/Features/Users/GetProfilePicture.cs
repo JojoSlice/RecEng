@@ -13,10 +13,12 @@ public static class GetProfilePicture
     {
         var user = await db.Users.FindAsync(id);
 
-        if (user?.ProfilePicturePath is null)
+        if (user is null)
             return Results.NotFound();
 
-        var fullPath = Path.GetFullPath(user.ProfilePicturePath);
+        var filePath = user.ProfilePicturePath ?? Path.Combine("assets", "default.jpg");
+
+        var fullPath = Path.GetFullPath(filePath);
 
         if (!File.Exists(fullPath))
             return Results.NotFound();
