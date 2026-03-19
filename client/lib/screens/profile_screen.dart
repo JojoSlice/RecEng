@@ -127,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               _buildProfileHeader(),
               const SizedBox(height: 32),
-              _buildVideosList(),
+              _buildVideosGrid(),
               const SizedBox(height: 32),
               _buildLogoutButton(),
               if (_error != null) ...[
@@ -216,7 +216,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildVideosList() {
+  Widget _buildVideosGrid() {
+    final baseUrl = widget.videoService.client.baseUrl;
+
     if (_videos.isEmpty) {
       return Neumorphic(
         style: NeumorphicStyle(
@@ -237,64 +239,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ..._videos.map(
-          (video) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Neumorphic(
-              style: NeumorphicStyle(
-                depth: 2,
-                boxShape:
-                    NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.videocam_rounded,
-                      color: Color(0xFFB08968),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            video.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (video.description.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              video.description,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: NeumorphicTheme.defaultTextColor(context)
-                                    .withValues(alpha: 0.6),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+        childAspectRatio: 9 / 16,
+      ),
+      itemCount: _videos.length,
+      itemBuilder: (context, index) {
+        final video = _videos[index];
+        final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
+        return Image.network(
+          thumbnailUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: const Color(0xFFB08968).withValues(alpha: 0.2),
+            child: const Icon(
+              Icons.videocam_rounded,
+              color: Color(0xFFB08968),
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
