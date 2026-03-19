@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ValueKey(_feedKey),
                     videoService: widget.videoService,
                     authService: widget.authService,
+                    isVisible: _currentTab == 0,
                   ),
                   UploadScreen(
                     videoService: widget.videoService,

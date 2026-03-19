@@ -8,11 +8,13 @@ import 'package:video_player/video_player.dart';
 class FeedScreen extends StatefulWidget {
   final VideoService videoService;
   final AuthService authService;
+  final bool isVisible;
 
   const FeedScreen({
     super.key,
     required this.videoService,
     required this.authService,
+    this.isVisible = true,
   });
 
   @override
@@ -52,7 +54,7 @@ class _FeedScreenState extends State<FeedScreen> {
               streamUrl: widget.videoService.getStreamUrl(videos[index].id),
               baseUrl: widget.videoService.client.baseUrl,
               accessToken: widget.videoService.client.accessToken,
-              isActive: index == _currentIndex,
+              isActive: index == _currentIndex && widget.isVisible,
             );
           },
         );
