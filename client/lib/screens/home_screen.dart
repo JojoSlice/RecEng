@@ -1,4 +1,5 @@
 import 'package:client/screens/feed_screen.dart';
+import 'package:client/screens/profile_screen.dart';
 import 'package:client/screens/upload_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
@@ -44,6 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       _currentTab = 0;
                     }),
                   ),
+                  ProfileScreen(
+                    videoService: widget.videoService,
+                    authService: widget.authService,
+                  ),
                 ],
               ),
             ),
@@ -69,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _navItem(Icons.home_rounded, 'Home', 0),
             _navItem(Icons.add_circle_outline_rounded, 'Upload', 1),
+            _navItem(Icons.person_rounded, 'Profile', 2),
           ],
         ),
       ),

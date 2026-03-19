@@ -51,4 +51,35 @@ class VideoService {
       throw Exception(body);
     }
   }
+
+  Future<List<Video>> getUserVideos(String userId) async {
+    final res = await client.get('/api/users/$userId/videos');
+    if (res.statusCode == 404) return [];
+    if (res.statusCode != 200) throw Exception('Failed to load user videos');
+    return (jsonDecode(res.body) as List)
+        .map((v) => Video.fromJson(v))
+        .toList();
+  }
+
+  Future<void> uploadProfilePicture({
+    required List<int> fileBytes,
+    required String fileName,
+  }) async {
+    final uri = Uri.parse('${client.baseUrl}/api/users/me/profile-picture');
+    final request = http.MultipartRequest('POST', uri);
+
+    if (client.accessToken != null) {
+      request.headers['Authorization'] = 'Bearer ${client.accessToken}';
+    }
+
+    request.files.add(
+      http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
+    );
+
+    final response = await request.send();
+    if (response.statusCode != 200) {
+      final body = await response.stream.bytesToString();
+      throw Exception(body);
+    }
+  }
 }

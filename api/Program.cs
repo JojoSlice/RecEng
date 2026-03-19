@@ -115,5 +115,6 @@ DeleteUserVideo.MapEndpoint(app);
 CurrentUser.MapEndpoint(app);
 UploadProfilePicture.MapEndpoint(app);
 GetProfilePicture.MapEndpoint(app);
+GetThumbnail.MapEndpoint(app);
 
 app.Run();

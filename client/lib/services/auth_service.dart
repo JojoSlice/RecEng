@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'secure_storage_service.dart';
 import 'package:client/services/api_client.dart';
 import 'package:client/models/auth.dart';
+import 'package:client/models/user.dart';
 
 class AuthService {
   final ApiClient client;
@@ -47,5 +48,11 @@ class AuthService {
   Future<void> restoreSession() async {
     final token = await storage.getAccessToken();
     if (token != null) client.accessToken = token;
+  }
+
+  Future<User> getCurrentUser() async {
+    final res = await client.get('/api/users/me');
+    if (res.statusCode != 200) throw Exception('Failed to load user');
+    return User.fromJson(jsonDecode(res.body));
   }
 }
