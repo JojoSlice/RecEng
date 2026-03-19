@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       children: [
         NeumorphicText(
-          'Profile',
+          'RecEng',
           style: const NeumorphicStyle(depth: 6, intensity: 0.9),
           textStyle: NeumorphicTextStyle(
             fontSize: 36,
