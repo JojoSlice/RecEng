@@ -128,8 +128,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildProfileHeader(),
               const SizedBox(height: 32),
               _buildVideosGrid(),
-              const SizedBox(height: 32),
-              _buildLogoutButton(),
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!, style: const TextStyle(color: Colors.red)),
@@ -202,6 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        _buildLogoutButton(),
         const SizedBox(height: 20),
         Text(
           _user!.username.replaceAll('_', ' '),
@@ -210,6 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.w700,
             color: Colors.white,
             letterSpacing: 1,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
