@@ -1,12 +1,16 @@
+using System.Threading.RateLimiting;
 using api.Data;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace api.Tests.Fixtures;
 
@@ -37,6 +41,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
                     .Options
             ));
+
+            // Replace rate limiter policies with no-op versions for tests
+            var rateLimiterConfigs = services
+                .Where(d => d.ServiceType == typeof(IConfigureOptions<RateLimiterOptions>))
+                .ToList();
+            foreach (var d in rateLimiterConfigs)
+                services.Remove(d);
+
+            services.AddRateLimiter(options =>
+            {
+                foreach (var policy in new[] { "auth", "read", "upload", "stream" })
+                    options.AddPolicy(policy, _ => RateLimitPartition.GetNoLimiter(policy));
+            });
         });
 
         builder.UseEnvironment("Development");
