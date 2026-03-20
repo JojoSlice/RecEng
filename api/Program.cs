@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Threading.RateLimiting;
 using api.Data;
@@ -11,12 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 500 * 1024 * 1024; // 500 MB
+    options.Limits.MaxRequestBodySize = 500 * 1024 * 1024;
 });
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 500 * 1024 * 1024; // 500 MB
+    options.MultipartBodyLengthLimit = 500 * 1024 * 1024;
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -86,7 +87,6 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Auth endpoints: 10 requests/min per IP — brute force protection
     options.AddPolicy("auth", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -99,7 +99,6 @@ builder.Services.AddRateLimiter(options =>
         )
     );
 
-    // Upload endpoints: 5 requests/min per user — FFmpeg transcoding is expensive
     options.AddPolicy("upload", httpContext =>
     {
         var userId = httpContext.User.FindFirst("sub")?.Value;
@@ -115,7 +114,6 @@ builder.Services.AddRateLimiter(options =>
         );
     });
 
-    // Stream endpoint: token bucket per IP — allows seek/retry bursts without enabling scraping
     options.AddPolicy("stream", httpContext =>
         RateLimitPartition.GetTokenBucketLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -130,7 +128,6 @@ builder.Services.AddRateLimiter(options =>
         )
     );
 
-    // Read endpoints: 60 requests/min per IP — normal browsing should never hit this
     options.AddPolicy("read", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -167,6 +164,34 @@ if (app.Environment.IsDevelopment())
         Path.Combine(app.Environment.ContentRootPath, "..", "devAssets")
     );
     await DevSeeder.SeedAsync(app.Services, devAssetsPath);
+}
+
+try
+{
+    var ffmpegCheck = new ProcessStartInfo
+    {
+        FileName = "ffmpeg",
+        Arguments = "-version",
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true,
+    };
+    using var checkProcess = Process.Start(ffmpegCheck);
+    if (checkProcess is null)
+        app.Logger.LogError("ffmpeg startup check failed: could not start process — video upload and thumbnails will not work");
+    else
+    {
+        await checkProcess.WaitForExitAsync();
+        if (checkProcess.ExitCode != 0)
+            app.Logger.LogError("ffmpeg startup check failed with exit code {ExitCode}", checkProcess.ExitCode);
+        else
+            app.Logger.LogInformation("ffmpeg is available");
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "ffmpeg not found — video upload and thumbnails will not work");
 }
 
 app.UseHttpsRedirection();

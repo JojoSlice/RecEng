@@ -29,9 +29,30 @@ public static class Refresh
             rt.TokenHash == tokenHash
         );
 
-        if (storedToken is null || !storedToken.IsActive)
+        if (storedToken is null)
         {
-            logger.LogWarning("Token refresh failed, invalid or expired refresh token");
+            logger.LogWarning("Token refresh failed, token not found");
+            return Results.Unauthorized();
+        }
+
+        if (storedToken.IsRevoked)
+        {
+            var activeTokens = await db.RefreshTokens
+                .Where(rt => rt.UserId == storedToken.UserId && rt.RevokedAt == null)
+                .ToListAsync();
+            foreach (var token in activeTokens)
+                token.Revoke();
+            await db.SaveChangesAsync();
+            logger.LogWarning(
+                "Revoked refresh token presented for user {UserId} — all active tokens invalidated (possible token theft)",
+                storedToken.UserId
+            );
+            return Results.Unauthorized();
+        }
+
+        if (!storedToken.IsActive)
+        {
+            logger.LogWarning("Token refresh failed, token expired for user {UserId}", storedToken.UserId);
             return Results.Unauthorized();
         }
 
