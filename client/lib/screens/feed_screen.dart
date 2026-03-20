@@ -234,8 +234,8 @@ class _VideoItemState extends State<_VideoItem> {
             bottom: 24,
             left: 16,
             right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 GestureDetector(
                   onTap: () => Navigator.of(context).push(
@@ -258,7 +258,8 @@ class _VideoItemState extends State<_VideoItem> {
                       ),
                     ),
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       CircleAvatar(
                         radius: 18,
@@ -270,12 +271,12 @@ class _VideoItemState extends State<_VideoItem> {
                               : {},
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(height: 4),
                       Text(
                         widget.video.uploader.username,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           decoration: TextDecoration.none,
                           shadows: [Shadow(blurRadius: 4)],
@@ -284,28 +285,36 @@ class _VideoItemState extends State<_VideoItem> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.video.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.none,
-                    shadows: [Shadow(blurRadius: 4)],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.video.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.none,
+                          shadows: [Shadow(blurRadius: 4)],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.video.description,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          decoration: TextDecoration.none,
+                          shadows: [Shadow(blurRadius: 4)],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.video.description,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    decoration: TextDecoration.none,
-                    shadows: [Shadow(blurRadius: 4)],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

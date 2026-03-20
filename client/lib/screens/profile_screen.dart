@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   String? _error;
   bool _isUploadingPicture = false;
-  int _pictureCacheKey = 0;
+  int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
   bool _isChangePhotoHovered = false;
   bool _isLogoutHovered = false;
   final _picker = ImagePicker();
@@ -116,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         fileName: image.name,
       );
       if (mounted) {
-        setState(() => _pictureCacheKey++);
+        setState(() => _pictureCacheKey = DateTime.now().millisecondsSinceEpoch);
       }
     } catch (e) {
       if (mounted) {
