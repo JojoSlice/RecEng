@@ -5,19 +5,14 @@ namespace api.Data;
 
 public static class DevSeeder
 {
-    private static readonly (string Title, string Description, string[] Tags)[] VideoMetadata =
+    private static readonly (string Title, string Description, string[] Tags)[] JojoVideoMetadata =
     [
         ("Morning Workout", "A quick morning workout routine", ["fitness", "workout", "morning"]),
         ("Cooking Pasta", "How to cook the perfect pasta", ["cooking", "food", "italian"]),
         ("City Walk", "Walking through the city center", ["travel", "city", "walk"]),
-        ("Guitar Practice", "Fingerpicking patterns for beginners", ["music", "guitar", "tutorial"]),
-        ("Dog Park", "Playful dogs at the park", ["animals", "dogs", "outdoor"]),
-        ("Sunset Timelapse", "Beautiful sunset timelapse", ["nature", "timelapse", "sunset"]),
-        ("Yoga Session", "20 minute yoga for flexibility", ["yoga", "fitness", "wellness"]),
-        ("Street Food", "Trying street food around town", ["food", "travel", "street"]),
-        ("Rain on Window", "Relaxing rain sounds and visuals", ["relaxing", "rain", "ambient"]),
-        ("Skateboarding", "Tricks at the local skatepark", ["sports", "skateboarding", "outdoor"]),
     ];
+
+    private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
 
     public static async Task SeedAsync(IServiceProvider services, string devAssetsPath)
     {
@@ -31,20 +26,40 @@ public static class DevSeeder
             return;
         }
 
-        const string seedUsername = "seed_user";
-        var seedUser = await db.Users.FirstOrDefaultAsync(u => u.Username == seedUsername);
+        var jojo = await db.Users.FirstOrDefaultAsync(u => u.Username == "jojo");
 
-        if (seedUser is null)
+        if (jojo is null)
         {
-            seedUser = new User(seedUsername, BCrypt.Net.BCrypt.HashPassword("seed_password"));
-            db.Users.Add(seedUser);
+            jojo = new User("jojo", BCrypt.Net.BCrypt.HashPassword("password"));
+            db.Users.Add(jojo);
             await db.SaveChangesAsync();
-            logger.LogInformation("[DevSeeder] Created seed user '{Username}'", seedUsername);
+            logger.LogInformation("[DevSeeder] Created user 'jojo'");
+        }
+
+        var profilePicture = ImageExtensions
+            .SelectMany(ext => Directory.GetFiles(devAssetsPath, $"*{ext}"))
+            .OrderBy(f => f)
+            .FirstOrDefault();
+
+        if (profilePicture is not null)
+        {
+            Directory.CreateDirectory(Path.Combine("uploads", "profile-pictures"));
+            var ext = Path.GetExtension(profilePicture);
+            var destPath = Path.Combine("uploads", "profile-pictures", $"{jojo.Id}{ext}");
+            File.Copy(profilePicture, destPath, overwrite: true);
+            jojo.SetProfilePicture(destPath);
+            await db.SaveChangesAsync();
+            logger.LogInformation("[DevSeeder] Set profile picture for 'jojo'");
+        }
+        else
+        {
+            logger.LogWarning("[DevSeeder] No image file found in {Path}, skipping profile picture", devAssetsPath);
         }
 
         var videoFiles = Directory
             .GetFiles(devAssetsPath, "*.mp4")
             .OrderBy(f => f)
+            .Take(3)
             .ToArray();
 
         if (videoFiles.Length == 0)
@@ -57,8 +72,8 @@ public static class DevSeeder
 
         for (var i = 0; i < videoFiles.Length; i++)
         {
-            var meta = VideoMetadata[i % VideoMetadata.Length];
-            var destFileName = $"seed_{i + 1}{Path.GetExtension(videoFiles[i])}";
+            var meta = JojoVideoMetadata[i];
+            var destFileName = $"jojo_{i + 1}{Path.GetExtension(videoFiles[i])}";
             var destPath = Path.Combine("uploads", destFileName);
 
             await using (var src = new FileStream(videoFiles[i], FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true))
@@ -73,13 +88,13 @@ public static class DevSeeder
                 .Select(name => new Tag(name))
                 .ToList();
 
-            var video = new Video(meta.Title, meta.Description, seedUser.Id);
+            var video = new Video(meta.Title, meta.Description, jojo.Id);
             video.SetReady(destPath);
             video.Tags.AddRange(existingTags.Concat(newTags));
             db.Videos.Add(video);
             await db.SaveChangesAsync();
         }
 
-        logger.LogInformation("[DevSeeder] Seeded {Count} videos", videoFiles.Length);
+        logger.LogInformation("[DevSeeder] Seeded {Count} videos for 'jojo'", videoFiles.Length);
     }
 }
