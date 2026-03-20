@@ -99,6 +99,7 @@ class _VideoItemState extends State<_VideoItem> {
   late VideoPlayerController _controller;
   bool _initialized = false;
   String? _error;
+  final int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
 
   @override
   void initState() {
@@ -265,7 +266,7 @@ class _VideoItemState extends State<_VideoItem> {
                         radius: 18,
                         backgroundColor: Colors.white24,
                         backgroundImage: NetworkImage(
-                          '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture',
+                          '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture?v=$_pictureCacheKey',
                           headers: widget.accessToken != null
                               ? {'Authorization': 'Bearer ${widget.accessToken}'}
                               : {},
