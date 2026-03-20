@@ -210,10 +210,24 @@ class _VideoItemState extends State<_VideoItem> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Center(
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Center(
+              child: Neumorphic(
+                style: NeumorphicStyle(
+                  depth: -4,
+                  boxShape: NeumorphicBoxShape.roundRect(
+                    BorderRadius.circular(16),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller),
+                  ),
+                ),
+              ),
             ),
           ),
           Positioned(

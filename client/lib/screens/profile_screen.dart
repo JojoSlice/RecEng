@@ -64,7 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() {
           _user = user;
-          _videos = videos;
+          _videos = videos.reversed.toList();
           _isLoading = false;
         });
         _updatePolling();
