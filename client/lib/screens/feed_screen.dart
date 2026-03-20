@@ -59,11 +59,85 @@ class _FeedScreenState extends State<FeedScreen> {
               isActive: index == _currentIndex && widget.isVisible,
               videoService: widget.videoService,
               authService: widget.authService,
+              onSwitchTab: widget.onSwitchTab,
             );
           },
         );
       },
     );
+  }
+
+}
+
+class _VideoItem extends StatefulWidget {
+  final Video video;
+  final String streamUrl;
+  final String baseUrl;
+  final String? accessToken;
+  final bool isActive;
+  final VideoService videoService;
+  final AuthService authService;
+  final void Function(int)? onSwitchTab;
+
+  const _VideoItem({
+    super.key,
+    required this.video,
+    required this.streamUrl,
+    required this.baseUrl,
+    required this.accessToken,
+    required this.isActive,
+    required this.videoService,
+    required this.authService,
+    this.onSwitchTab,
+  });
+
+  @override
+  State<_VideoItem> createState() => _VideoItemState();
+}
+
+class _VideoItemState extends State<_VideoItem> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initController();
+  }
+
+  Future<void> _initController() async {
+    try {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.streamUrl),
+        httpHeaders: widget.accessToken != null
+            ? {'Authorization': 'Bearer ${widget.accessToken}'}
+            : {},
+      );
+      await _controller.initialize();
+      _controller.setLooping(true);
+      if (widget.isActive) _controller.play();
+      if (mounted) setState(() => _initialized = true);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    }
+  }
+
+  @override
+  void didUpdateWidget(_VideoItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_initialized) return;
+    if (widget.isActive && !oldWidget.isActive) {
+      _controller.play();
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _controller.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Widget _buildRouteBottomNav(BuildContext ctx) {
@@ -115,76 +189,6 @@ class _FeedScreenState extends State<FeedScreen> {
         ),
       ),
     );
-  }
-}
-
-class _VideoItem extends StatefulWidget {
-  final Video video;
-  final String streamUrl;
-  final String baseUrl;
-  final String? accessToken;
-  final bool isActive;
-  final VideoService videoService;
-  final AuthService authService;
-
-  const _VideoItem({
-    super.key,
-    required this.video,
-    required this.streamUrl,
-    required this.baseUrl,
-    required this.accessToken,
-    required this.isActive,
-    required this.videoService,
-    required this.authService,
-  });
-
-  @override
-  State<_VideoItem> createState() => _VideoItemState();
-}
-
-class _VideoItemState extends State<_VideoItem> {
-  late VideoPlayerController _controller;
-  bool _initialized = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _initController();
-  }
-
-  Future<void> _initController() async {
-    try {
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(widget.streamUrl),
-        httpHeaders: widget.accessToken != null
-            ? {'Authorization': 'Bearer ${widget.accessToken}'}
-            : {},
-      );
-      await _controller.initialize();
-      _controller.setLooping(true);
-      if (widget.isActive) _controller.play();
-      if (mounted) setState(() => _initialized = true);
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
-    }
-  }
-
-  @override
-  void didUpdateWidget(_VideoItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_initialized) return;
-    if (widget.isActive && !oldWidget.isActive) {
-      _controller.play();
-    } else if (!widget.isActive && oldWidget.isActive) {
-      _controller.pause();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   void _togglePlayPause() {
