@@ -1,7 +1,7 @@
+import 'package:client/screens/profile_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/models/video.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:video_player/video_player.dart';
 
@@ -9,12 +9,14 @@ class FeedScreen extends StatefulWidget {
   final VideoService videoService;
   final AuthService authService;
   final bool isVisible;
+  final void Function(int)? onSwitchTab;
 
   const FeedScreen({
     super.key,
     required this.videoService,
     required this.authService,
     this.isVisible = true,
+    this.onSwitchTab,
   });
 
   @override
@@ -55,10 +57,63 @@ class _FeedScreenState extends State<FeedScreen> {
               baseUrl: widget.videoService.client.baseUrl,
               accessToken: widget.videoService.client.accessToken,
               isActive: index == _currentIndex && widget.isVisible,
+              videoService: widget.videoService,
+              authService: widget.authService,
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildRouteBottomNav(BuildContext ctx) {
+    return Neumorphic(
+      style: NeumorphicStyle(
+        depth: 4,
+        boxShape: NeumorphicBoxShape.roundRect(
+          const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _routeNavItem(ctx, Icons.home_rounded, 'Home', 0),
+            _routeNavItem(ctx, Icons.add_circle_outline_rounded, 'Upload', 1),
+            _routeNavItem(ctx, Icons.person_rounded, 'Profile', 2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _routeNavItem(BuildContext ctx, IconData icon, String label, int index) {
+    final color = NeumorphicTheme.defaultTextColor(ctx).withValues(alpha: 0.4);
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(ctx).pop();
+        widget.onSwitchTab?.call(index);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 28, color: color),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -69,6 +124,8 @@ class _VideoItem extends StatefulWidget {
   final String baseUrl;
   final String? accessToken;
   final bool isActive;
+  final VideoService videoService;
+  final AuthService authService;
 
   const _VideoItem({
     super.key,
@@ -77,6 +134,8 @@ class _VideoItem extends StatefulWidget {
     required this.baseUrl,
     required this.accessToken,
     required this.isActive,
+    required this.videoService,
+    required this.authService,
   });
 
   @override
@@ -160,30 +219,52 @@ class _VideoItemState extends State<_VideoItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.white24,
-                      backgroundImage: NetworkImage(
-                        '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture',
-                        headers: widget.accessToken != null
-                            ? {'Authorization': 'Bearer ${widget.accessToken}'}
-                            : {},
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => NeumorphicBackground(
+                        child: SafeArea(
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: ProfileScreen(
+                                  videoService: widget.videoService,
+                                  authService: widget.authService,
+                                  userId: widget.video.uploader.id,
+                                ),
+                              ),
+                              _buildRouteBottomNav(ctx),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.video.uploader.username,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.none,
-                        shadows: [Shadow(blurRadius: 4)],
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.white24,
+                        backgroundImage: NetworkImage(
+                          '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture',
+                          headers: widget.accessToken != null
+                              ? {'Authorization': 'Bearer ${widget.accessToken}'}
+                              : {},
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.video.uploader.username,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none,
+                          shadows: [Shadow(blurRadius: 4)],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(

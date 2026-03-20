@@ -113,6 +113,7 @@ GetUserVideos.MapEndpoint(app);
 UpdateUserVideo.MapEndpoint(app);
 DeleteUserVideo.MapEndpoint(app);
 CurrentUser.MapEndpoint(app);
+GetUser.MapEndpoint(app);
 UploadProfilePicture.MapEndpoint(app);
 GetProfilePicture.MapEndpoint(app);
 GetThumbnail.MapEndpoint(app);

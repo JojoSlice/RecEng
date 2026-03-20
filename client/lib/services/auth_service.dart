@@ -55,4 +55,10 @@ class AuthService {
     if (res.statusCode != 200) throw Exception('Failed to load user');
     return User.fromJson(jsonDecode(res.body));
   }
+
+  Future<User> getUser(String userId) async {
+    final res = await client.get('/api/users/$userId');
+    if (res.statusCode != 200) throw Exception('Failed to load user');
+    return User.fromJson(jsonDecode(res.body));
+  }
 }

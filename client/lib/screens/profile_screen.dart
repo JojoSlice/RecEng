@@ -9,11 +9,14 @@ import 'package:image_picker/image_picker.dart';
 class ProfileScreen extends StatefulWidget {
   final VideoService videoService;
   final AuthService authService;
+  // If set, shows another user's profile (read-only). If null, shows own profile.
+  final String? userId;
 
   const ProfileScreen({
     super.key,
     required this.videoService,
     required this.authService,
+    this.userId,
   });
 
   @override
@@ -31,6 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLogoutHovered = false;
   final _picker = ImagePicker();
 
+  bool get _isOwnProfile => widget.userId == null;
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +48,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _error = null;
     });
     try {
-      final user = await widget.authService.getCurrentUser();
+      final user = _isOwnProfile
+          ? await widget.authService.getCurrentUser()
+          : await widget.authService.getUser(widget.userId!);
       final videos = await widget.videoService.getUserVideos(user.id);
       if (mounted) {
         setState(() {
@@ -125,6 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           constraints: const BoxConstraints(maxWidth: 400),
           child: Column(
             children: [
+              if (!_isOwnProfile) _buildBackButton(context),
               _buildProfileHeader(),
               const SizedBox(height: 32),
               _buildVideosGrid(),
@@ -134,6 +142,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: NeumorphicButton(
+        onPressed: () => Navigator.of(context).pop(),
+        style: const NeumorphicStyle(
+          depth: 2,
+          boxShape: NeumorphicBoxShape.circle(),
+        ),
+        padding: const EdgeInsets.all(10),
+        child: const Icon(
+          Icons.arrow_back_rounded,
+          color: Color(0xFFB08968),
+          size: 20,
         ),
       ),
     );
@@ -178,31 +205,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
         ),
         const SizedBox(height: 16),
-        MouseRegion(
-          onEnter: (_) => setState(() => _isChangePhotoHovered = true),
-          onExit: (_) => setState(() => _isChangePhotoHovered = false),
-          child: NeumorphicButton(
-            onPressed: _isUploadingPicture ? null : _changeProfilePicture,
-            style: NeumorphicStyle(
-              depth: _isChangePhotoHovered ? 1 : 2,
-              boxShape:
-                  NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: const Text(
-              'CHANGE PHOTO',
-              style: TextStyle(
-                color: Color(0xFFB08968),
-                fontWeight: FontWeight.w400,
-                fontSize: 12,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        _buildLogoutButton(),
-        const SizedBox(height: 20),
         Text(
           _user!.username.replaceAll('_', ' '),
           style: const TextStyle(
@@ -213,6 +215,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: TextDecoration.none,
           ),
         ),
+        const SizedBox(height: 16),
+        if (_isOwnProfile) ...[
+          MouseRegion(
+            onEnter: (_) => setState(() => _isChangePhotoHovered = true),
+            onExit: (_) => setState(() => _isChangePhotoHovered = false),
+            child: NeumorphicButton(
+              onPressed: _isUploadingPicture ? null : _changeProfilePicture,
+              style: NeumorphicStyle(
+                depth: _isChangePhotoHovered ? 1 : 2,
+                boxShape:
+                    NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: const Text(
+                'CHANGE PHOTO',
+                style: TextStyle(
+                  color: Color(0xFFB08968),
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildLogoutButton(),
+        ],
       ],
     );
   }
@@ -256,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Image.network(
           thumbnailUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
+          errorBuilder: (context, error, stackTrace) => Container(
             color: const Color(0xFFB08968).withValues(alpha: 0.2),
             child: const Icon(
               Icons.videocam_rounded,

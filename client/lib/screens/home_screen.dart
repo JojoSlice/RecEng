@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     videoService: widget.videoService,
                     authService: widget.authService,
                     isVisible: _currentTab == 0,
+                    onSwitchTab: (i) => setState(() => _currentTab = i),
                   ),
                   UploadScreen(
                     videoService: widget.videoService,
