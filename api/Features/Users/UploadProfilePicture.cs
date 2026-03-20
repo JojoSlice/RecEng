@@ -11,7 +11,7 @@ public static class UploadProfilePicture
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/users/me/profile-picture", Handle).RequireAuthorization().DisableAntiforgery();
+        app.MapPost("/api/users/me/profile-picture", Handle).RequireAuthorization().DisableAntiforgery().RequireRateLimiting("upload");
     }
 
     private static async Task<IResult> Handle(

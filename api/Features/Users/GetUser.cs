@@ -8,7 +8,7 @@ public static class GetUser
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users/{userId:guid}", Handle).RequireAuthorization();
+        app.MapGet("/api/users/{userId:guid}", Handle).RequireAuthorization().RequireRateLimiting("read");
     }
 
     private static async Task<IResult> Handle(Guid userId, AppDbContext db)

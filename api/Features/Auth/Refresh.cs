@@ -12,7 +12,7 @@ public static class Refresh
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/refresh", Handle);
+        app.MapPost("/api/auth/refresh", Handle).RequireRateLimiting("auth");
     }
 
     private static async Task<IResult> Handle(

@@ -6,7 +6,7 @@ public static class GetUserVideos {
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users/{id}/videos", Handle);
+        app.MapGet("/api/users/{id}/videos", Handle).RequireRateLimiting("read");
     }
 
 

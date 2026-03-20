@@ -6,7 +6,7 @@ public static class GetProfilePicture
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users/{id:guid}/profile-picture", Handle);
+        app.MapGet("/api/users/{id:guid}/profile-picture", Handle).RequireRateLimiting("read");
     }
 
     private static async Task<IResult> Handle(Guid id, AppDbContext db)

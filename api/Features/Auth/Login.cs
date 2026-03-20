@@ -17,7 +17,7 @@ public static class Login
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/login", Handle);
+        app.MapPost("/api/auth/login", Handle).RequireRateLimiting("auth");
     }
 
     private static async Task<IResult> Handle(

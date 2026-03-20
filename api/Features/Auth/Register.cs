@@ -11,7 +11,7 @@ public static class Register
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/register", Handle);
+        app.MapPost("/api/auth/register", Handle).RequireRateLimiting("auth");
     }
 
     public static async Task<IResult> Handle(

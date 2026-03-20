@@ -10,7 +10,7 @@ public static class UploadVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/videos/", Handle).RequireAuthorization().DisableAntiforgery();
+        app.MapPost("/api/videos/", Handle).RequireAuthorization().DisableAntiforgery().RequireRateLimiting("upload");
     }
 
     public static async Task<IResult> Handle(

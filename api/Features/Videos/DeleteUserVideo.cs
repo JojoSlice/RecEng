@@ -8,7 +8,7 @@ public static class DeleteUserVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/videos/{id}", Handle).RequireAuthorization();
+        app.MapDelete("/api/videos/{id}", Handle).RequireAuthorization().RequireRateLimiting("read");
     }
 
     public static async Task<IResult> Handle(

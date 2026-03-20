@@ -8,7 +8,7 @@ public static class Logout
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/logout", Handle).RequireAuthorization();
+        app.MapPost("/api/auth/logout", Handle).RequireAuthorization().RequireRateLimiting("auth");
     }
 
     private static async Task<IResult> Handle(

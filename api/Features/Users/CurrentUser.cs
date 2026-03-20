@@ -10,7 +10,7 @@ public static class CurrentUser
 
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users/me", Handle).RequireAuthorization();
+        app.MapGet("/api/users/me", Handle).RequireAuthorization().RequireRateLimiting("read");
     }
 
     private static async Task<IResult> Handle(ClaimsPrincipal user, AppDbContext db)

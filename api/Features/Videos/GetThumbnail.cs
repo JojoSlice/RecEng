@@ -7,7 +7,7 @@ public static class GetThumbnail
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/videos/{id}/thumbnail", Handle);
+        app.MapGet("/api/videos/{id}/thumbnail", Handle).RequireRateLimiting("read");
     }
 
     private static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)

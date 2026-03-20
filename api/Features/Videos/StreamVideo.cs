@@ -6,7 +6,7 @@ public static class StreamVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/videos/{id}/stream", Handle);
+        app.MapGet("/api/videos/{id}/stream", Handle).RequireRateLimiting("stream");
     }
 
     public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)

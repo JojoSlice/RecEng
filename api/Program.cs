@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using api.Data;
 using api.Features.Auth;
 using api.Features.Users;
@@ -80,6 +81,69 @@ builder
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Auth endpoints: 10 requests/min per IP — brute force protection
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 10,
+                QueueLimit = 0,
+            }
+        )
+    );
+
+    // Upload endpoints: 5 requests/min per user — FFmpeg transcoding is expensive
+    options.AddPolicy("upload", httpContext =>
+    {
+        var userId = httpContext.User.FindFirst("sub")?.Value;
+        var key = userId ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 5,
+                QueueLimit = 0,
+            }
+        );
+    });
+
+    // Stream endpoint: token bucket per IP — allows seek/retry bursts without enabling scraping
+    options.AddPolicy("stream", httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 30,
+                TokensPerPeriod = 20,
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }
+        )
+    );
+
+    // Read endpoints: 60 requests/min per IP — normal browsing should never hit this
+    options.AddPolicy("read", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 60,
+                QueueLimit = 0,
+            }
+        )
+    );
+});
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.WithOrigins("http://localhost:8080", "http://localhost:5033")
@@ -110,6 +174,7 @@ app.UseCors();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 Register.MapEndpoint(app);
 Login.MapEndpoint(app);

@@ -9,7 +9,7 @@ public static class UpdateUserVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/videos/{id}", Handle).RequireAuthorization();
+        app.MapPut("/api/videos/{id}", Handle).RequireAuthorization().RequireRateLimiting("read");
     }
 
     public static async Task<IResult> Handle(
