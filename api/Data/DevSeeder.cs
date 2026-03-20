@@ -73,7 +73,8 @@ public static class DevSeeder
                 .Select(name => new Tag(name))
                 .ToList();
 
-            var video = new Video(meta.Title, meta.Description, destPath, seedUser.Id);
+            var video = new Video(meta.Title, meta.Description, seedUser.Id);
+            video.SetReady(destPath);
             video.Tags.AddRange(existingTags.Concat(newTags));
             db.Videos.Add(video);
             await db.SaveChangesAsync();

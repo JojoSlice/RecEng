@@ -1,16 +1,19 @@
 namespace api.Features.Videos;
 
+public enum VideoStatus { Processing, Ready, Failed }
+
 public class Video
 {
     private Video() { }
 
-    public Video(string title, string description, string filePath, Guid uploadedBy)
+    public Video(string title, string description, Guid uploadedBy)
     {
         Title = title;
         Description = description;
-        FilePath = filePath;
+        FilePath = string.Empty;
         UploadedBy = uploadedBy;
         CreatedAt = DateTimeOffset.UtcNow;
+        Status = VideoStatus.Processing;
     }
 
     public Guid Id { get; private set; }
@@ -20,6 +23,18 @@ public class Video
     public string FilePath { get; private set; } = null!;
     public Guid UploadedBy { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
+    public VideoStatus Status { get; private set; }
+
+    public void SetReady(string filePath)
+    {
+        FilePath = filePath;
+        Status = VideoStatus.Ready;
+    }
+
+    public void SetFailed()
+    {
+        Status = VideoStatus.Failed;
+    }
 
     public void Update(string title, string description, List<Tag> tags)
     {

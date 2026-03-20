@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:client/models/user.dart';
 import 'package:client/models/video.dart';
 import 'package:client/screens/login_screen.dart';
@@ -11,14 +13,12 @@ class ProfileScreen extends StatefulWidget {
   final AuthService authService;
   // If set, shows another user's profile (read-only). If null, shows own profile.
   final String? userId;
-  final bool hasPendingUpload;
 
   const ProfileScreen({
     super.key,
     required this.videoService,
     required this.authService,
     this.userId,
-    this.hasPendingUpload = false,
   });
 
   @override
@@ -35,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isChangePhotoHovered = false;
   bool _isLogoutHovered = false;
   final _picker = ImagePicker();
+  Timer? _pollTimer;
 
   bool get _isOwnProfile => widget.userId == null;
 
@@ -45,11 +46,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
-  void didUpdateWidget(ProfileScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.hasPendingUpload && !widget.hasPendingUpload) {
-      _loadProfile();
-    }
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadProfile() async {
@@ -68,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _videos = videos;
           _isLoading = false;
         });
+        _updatePolling();
       }
     } catch (e) {
       if (mounted) {
@@ -76,6 +76,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _pollVideos() async {
+    if (_user == null) return;
+    try {
+      final videos = await widget.videoService.getUserVideos(_user!.id);
+      if (mounted) {
+        setState(() => _videos = videos);
+        _updatePolling();
+      }
+    } catch (_) {}
+  }
+
+  void _updatePolling() {
+    final hasProcessing = _videos.any((v) => v.status == VideoStatus.processing);
+    if (hasProcessing && _pollTimer == null) {
+      _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollVideos());
+    } else if (!hasProcessing && _pollTimer != null) {
+      _pollTimer!.cancel();
+      _pollTimer = null;
     }
   }
 
@@ -259,9 +280,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildVideosGrid() {
     final baseUrl = widget.videoService.client.baseUrl;
-    final hasPending = widget.hasPendingUpload;
 
-    if (_videos.isEmpty && !hasPending) {
+    if (_videos.isEmpty) {
       return Neumorphic(
         style: NeumorphicStyle(
           depth: -3,
@@ -281,8 +301,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    final itemCount = _videos.length + (hasPending ? 1 : 0);
-
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -292,12 +310,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisSpacing: 2,
         childAspectRatio: 9 / 16,
       ),
-      itemCount: itemCount,
+      itemCount: _videos.length,
       itemBuilder: (context, index) {
-        if (hasPending && index == 0) {
+        final video = _videos[index];
+
+        if (video.status == VideoStatus.processing) {
           return _buildProcessingCard();
         }
-        final video = _videos[hasPending ? index - 1 : index];
+        if (video.status == VideoStatus.failed) {
+          return _buildFailedCard();
+        }
+
         final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
         return Image.network(
           thumbnailUrl,
@@ -333,6 +356,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'Processing',
             style: TextStyle(
               color: Color(0xFFB08968),
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 1,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFailedCard() {
+    return Container(
+      color: Colors.red.withValues(alpha: 0.15),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
+          SizedBox(height: 8),
+          Text(
+            'Failed',
+            style: TextStyle(
+              color: Colors.red,
               fontSize: 10,
               fontWeight: FontWeight.w400,
               letterSpacing: 1,

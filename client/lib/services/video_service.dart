@@ -24,7 +24,7 @@ class VideoService {
 
   String getStreamUrl(String id) => '${client.baseUrl}/api/videos/$id/stream';
 
-  Future<void> uploadVideo({
+  Future<String> uploadVideo({
     required List<int> fileBytes,
     required String fileName,
     required String title,
@@ -46,10 +46,14 @@ class VideoService {
     request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: fileName));
 
     final response = await request.send();
-    if (response.statusCode != 201) {
+    if (response.statusCode != 202) {
       final body = await response.stream.bytesToString();
       throw Exception(body);
     }
+
+    final body = await response.stream.bytesToString();
+    final json = jsonDecode(body) as Map<String, dynamic>;
+    return json['id'] as String;
   }
 
   Future<List<Video>> getUserVideos(String userId) async {

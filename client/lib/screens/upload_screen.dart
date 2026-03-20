@@ -4,18 +4,17 @@ import 'package:client/services/video_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 
 class UploadScreen extends StatefulWidget {
   final VideoService videoService;
-  final VoidCallback onUploadStarted;
-  final VoidCallback onUploadFinished;
+  final VoidCallback onUploadAccepted;
 
   const UploadScreen({
     super.key,
     required this.videoService,
-    required this.onUploadStarted,
-    required this.onUploadFinished,
+    required this.onUploadAccepted,
   });
 
   @override
@@ -82,27 +81,48 @@ class _UploadScreenState extends State<UploadScreen> {
         .where((t) => t.isNotEmpty)
         .toList();
 
-    final bytes = await _selectedVideo!.readAsBytes();
-
-    // Navigate to profile immediately — upload continues in background
-    widget.onUploadStarted();
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
+    final videoPath = _selectedVideo!.path;
+    final videoName = _selectedVideo!.name;
 
     try {
+      List<int> bytes;
+      String fileName = videoName;
+
+      if (!kIsWeb) {
+        final info = await VideoCompress.compressVideo(
+          videoPath,
+          quality: VideoQuality.MediumQuality,
+          deleteOrigin: false,
+          includeAudio: true,
+        );
+        if (info?.file != null) {
+          bytes = await info!.file!.readAsBytes();
+          fileName = info.file!.path.split('/').last;
+          await VideoCompress.deleteAllCache();
+        } else {
+          bytes = await File(videoPath).readAsBytes();
+        }
+      } else {
+        bytes = await _selectedVideo!.readAsBytes();
+      }
+
       await widget.videoService.uploadVideo(
         fileBytes: bytes,
-        fileName: _selectedVideo!.name,
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
+        fileName: fileName,
+        title: title,
+        description: description,
         tags: tags,
       );
 
+      // 202 received — navigate to profile, transcoding runs on server
       if (mounted) {
-        widget.onUploadFinished();
+        widget.onUploadAccepted();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
-        widget.onUploadFinished();
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);

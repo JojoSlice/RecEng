@@ -8,7 +8,8 @@ public record VideoResponse(
     string Description,
     List<string> Tags,
     UploaderResponse Uploader,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    string Status
 )
 {
     public static VideoResponse From(Video video, string uploaderUsername) => new(
@@ -17,6 +18,7 @@ public record VideoResponse(
         video.Description,
         video.Tags.Select(t => t.Name).ToList(),
         new UploaderResponse(video.UploadedBy, uploaderUsername),
-        video.CreatedAt
+        video.CreatedAt,
+        video.Status.ToString().ToLowerInvariant()
     );
 }

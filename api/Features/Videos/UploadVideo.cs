@@ -20,6 +20,7 @@ public static class UploadVideo
         IFormFile file,
         AppDbContext db,
         ClaimsPrincipal user,
+        IServiceScopeFactory scopeFactory,
         ILogger<AppDbContext> logger
     )
     {
@@ -65,49 +66,72 @@ public static class UploadVideo
             return Results.Problem("Failed to save video file");
         }
 
-        try
-        {
-            logger.LogInformation("Transcoding video {Title}", title);
-            await TranscodeAsync(tempPath, outputPath);
-            File.Delete(tempPath);
-            logger.LogInformation("Transcoding complete for video {Title}", title);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Transcoding failed for video {Title}", title);
-            File.Delete(tempPath);
-            File.Delete(outputPath);
-            return Results.Problem("Failed to process video");
-        }
+        var tagNames = (tags ?? []).Select(t => t.ToLowerInvariant()).Distinct().ToList();
+        var existingTags = await db.Tags
+            .Where(t => tagNames.Contains(t.Name))
+            .ToListAsync();
+
+        var existingTagNames = existingTags.Select(t => t.Name).ToHashSet();
+        var newTags = tagNames
+            .Where(name => !existingTagNames.Contains(name))
+            .Select(name => new Tag(name))
+            .ToList();
+
+        var video = new Video(title, description, id);
+        video.Tags.AddRange(existingTags.Concat(newTags));
+        db.Videos.Add(video);
 
         try
         {
-            var tagNames = (tags ?? []).Select(t => t.ToLowerInvariant()).Distinct().ToList();
-            var existingTags = await db.Tags
-                .Where(t => tagNames.Contains(t.Name))
-                .ToListAsync();
-
-            var existingTagNames = existingTags.Select(t => t.Name).ToHashSet();
-            var newTags = tagNames
-                .Where(name => !existingTagNames.Contains(name))
-                .Select(name => new Tag(name))
-                .ToList();
-
-            var video = new Video(title, description, outputPath, id);
-            video.Tags.AddRange(existingTags.Concat(newTags));
-            db.Videos.Add(video);
             await db.SaveChangesAsync();
-
-            logger.LogInformation("Video {Title} uploaded with id {Id}", video.Title, video.Id);
-
-            return Results.Created($"/videos/{video.Id}", new { video.Id, video.Title });
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to save video {Title} to database, cleaning up file", title);
-            File.Delete(outputPath);
+            logger.LogError(ex, "Failed to save video {Title} to database", title);
+            if (File.Exists(tempPath)) File.Delete(tempPath);
             return Results.Problem("Failed to save video");
         }
+
+        var videoId = video.Id;
+        logger.LogInformation("Video {Title} created with id {Id}, transcoding in background", title, videoId);
+
+        _ = Task.Run(async () =>
+        {
+            using var scope = scopeFactory.CreateScope();
+            var bgDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var bgLogger = scope.ServiceProvider.GetRequiredService<ILogger<AppDbContext>>();
+
+            try
+            {
+                bgLogger.LogInformation("Transcoding video {Id}", videoId);
+                await TranscodeAsync(tempPath, outputPath);
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+
+                var record = await bgDb.Videos.FindAsync(videoId);
+                if (record != null)
+                {
+                    record.SetReady(outputPath);
+                    await bgDb.SaveChangesAsync();
+                }
+
+                bgLogger.LogInformation("Transcoding complete for video {Id}", videoId);
+            }
+            catch (Exception ex)
+            {
+                bgLogger.LogError(ex, "Transcoding failed for video {Id}", videoId);
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+                if (File.Exists(outputPath)) File.Delete(outputPath);
+
+                var record = await bgDb.Videos.FindAsync(videoId);
+                if (record != null)
+                {
+                    record.SetFailed();
+                    await bgDb.SaveChangesAsync();
+                }
+            }
+        });
+
+        return Results.Accepted($"/api/videos/{videoId}", new { Id = videoId, video.Title });
     }
 
     private static async Task TranscodeAsync(string input, string output)
