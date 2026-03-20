@@ -122,11 +122,13 @@ public class VideoEndpointTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetUserVideos_NoVideos_Returns404()
+    public async Task GetUserVideos_NoVideos_ReturnsEmptyList()
     {
         var response = await _client.GetAsync($"/api/users/{Guid.NewGuid()}/videos");
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<List<VideoResponse>>();
+        Assert.Empty(body!);
     }
 
     // ── DELETE /api/videos/{id} ───────────────────────────────────────────────

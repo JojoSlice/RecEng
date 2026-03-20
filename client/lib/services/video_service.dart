@@ -58,7 +58,6 @@ class VideoService {
 
   Future<List<Video>> getUserVideos(String userId) async {
     final res = await client.get('/api/users/$userId/videos');
-    if (res.statusCode == 404) return [];
     if (res.statusCode != 200) throw Exception('Failed to load user videos');
     return (jsonDecode(res.body) as List)
         .map((v) => Video.fromJson(v))

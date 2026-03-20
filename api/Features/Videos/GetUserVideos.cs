@@ -18,12 +18,6 @@ public static class GetUserVideos {
             .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
             .ToListAsync();
 
-        if (!results.Any())
-        {
-            logger.LogWarning("GetUserVideos failed, no videos found for UploadedBy: {Id}", id);
-            return Results.NotFound(new { message = "Videos not found" });
-        }
-
         logger.LogInformation("GetUserVideos UploadedBy: {Id} returned count: {count}", id, results.Count);
         return Results.Ok(results.Select(r => VideoResponse.From(r.Video, r.Username)));
     }
