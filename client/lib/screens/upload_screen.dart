@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:client/services/video_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 
 class UploadScreen extends StatefulWidget {
   final VideoService videoService;
@@ -23,6 +27,7 @@ class _UploadScreenState extends State<UploadScreen> {
   final _picker = ImagePicker();
 
   XFile? _selectedVideo;
+  VideoPlayerController? _videoController;
   bool _isUploading = false;
   String? _error;
   bool _isUploadHovered = false;
@@ -32,14 +37,23 @@ class _UploadScreenState extends State<UploadScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _tagsController.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
   Future<void> _pickVideo(ImageSource source) async {
     final video = await _picker.pickVideo(source: source);
     if (video != null) {
+      _videoController?.dispose();
+      final controller = kIsWeb
+          ? VideoPlayerController.networkUrl(Uri.parse(video.path))
+          : VideoPlayerController.file(File(video.path));
+      await controller.initialize();
+      controller.setLooping(true);
+      controller.play();
       setState(() {
         _selectedVideo = video;
+        _videoController = controller;
         _error = null;
       });
     }
@@ -108,6 +122,25 @@ class _UploadScreenState extends State<UploadScreen> {
                   letterSpacing: 4,
                 ),
               ),
+              if (_videoController != null &&
+                  _videoController!.value.isInitialized) ...[
+                const SizedBox(height: 24),
+                Neumorphic(
+                  style: NeumorphicStyle(
+                    depth: -4,
+                    boxShape: NeumorphicBoxShape.roundRect(
+                      BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: AspectRatio(
+                      aspectRatio: _videoController!.value.aspectRatio,
+                      child: VideoPlayer(_videoController!),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               Row(
                 children: [
