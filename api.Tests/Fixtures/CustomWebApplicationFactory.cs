@@ -56,7 +56,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             });
         });
 
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
