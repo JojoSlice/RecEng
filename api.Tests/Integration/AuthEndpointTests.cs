@@ -127,5 +127,67 @@ public class AuthEndpointTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Register_EmptyUsername_Returns400()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Username = "", Password = "password123" }
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_EmptyPassword_Returns400()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Username = "someuser", Password = "" }
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_WhitespaceUsername_Returns400()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Username = "   ", Password = "password123" }
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Refresh_UsedToken_Returns401()
+    {
+        await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Username = "reusedtokenuser", Password = "password123" }
+        );
+
+        var loginResponse = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { Username = "reusedtokenuser", Password = "password123" }
+        );
+
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<TokenResponse>();
+
+        await _client.PostAsJsonAsync(
+            "/api/auth/refresh",
+            new { RefreshToken = loginBody!.RefreshToken }
+        );
+
+        // Reusing the same refresh token a second time should be rejected
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/refresh",
+            new { RefreshToken = loginBody.RefreshToken }
+        );
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private record TokenResponse(string AccessToken, string RefreshToken);
 }
