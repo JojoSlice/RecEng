@@ -11,12 +11,14 @@ class ProfileScreen extends StatefulWidget {
   final AuthService authService;
   // If set, shows another user's profile (read-only). If null, shows own profile.
   final String? userId;
+  final bool hasPendingUpload;
 
   const ProfileScreen({
     super.key,
     required this.videoService,
     required this.authService,
     this.userId,
+    this.hasPendingUpload = false,
   });
 
   @override
@@ -40,6 +42,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+  }
+
+  @override
+  void didUpdateWidget(ProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.hasPendingUpload && !widget.hasPendingUpload) {
+      _loadProfile();
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -249,8 +259,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildVideosGrid() {
     final baseUrl = widget.videoService.client.baseUrl;
+    final hasPending = widget.hasPendingUpload;
 
-    if (_videos.isEmpty) {
+    if (_videos.isEmpty && !hasPending) {
       return Neumorphic(
         style: NeumorphicStyle(
           depth: -3,
@@ -270,6 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    final itemCount = _videos.length + (hasPending ? 1 : 0);
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -279,9 +292,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisSpacing: 2,
         childAspectRatio: 9 / 16,
       ),
-      itemCount: _videos.length,
+      itemCount: itemCount,
       itemBuilder: (context, index) {
-        final video = _videos[index];
+        if (hasPending && index == 0) {
+          return _buildProcessingCard();
+        }
+        final video = _videos[hasPending ? index - 1 : index];
         final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
         return Image.network(
           thumbnailUrl,
@@ -295,6 +311,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProcessingCard() {
+    return Container(
+      color: const Color(0xFFB08968).withValues(alpha: 0.15),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFFB08968),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Processing',
+            style: TextStyle(
+              color: Color(0xFFB08968),
+              fontSize: 10,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 1,
+              decoration: TextDecoration.none,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

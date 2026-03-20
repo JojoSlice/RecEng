@@ -8,12 +8,14 @@ import 'package:video_player/video_player.dart';
 
 class UploadScreen extends StatefulWidget {
   final VideoService videoService;
-  final VoidCallback onUploadComplete;
+  final VoidCallback onUploadStarted;
+  final VoidCallback onUploadFinished;
 
   const UploadScreen({
     super.key,
     required this.videoService,
-    required this.onUploadComplete,
+    required this.onUploadStarted,
+    required this.onUploadFinished,
   });
 
   @override
@@ -74,15 +76,18 @@ class _UploadScreenState extends State<UploadScreen> {
       _error = null;
     });
 
+    final tags = _tagsController.text
+        .split(',')
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    final bytes = await _selectedVideo!.readAsBytes();
+
+    // Navigate to profile immediately — upload continues in background
+    widget.onUploadStarted();
+
     try {
-      final tags = _tagsController.text
-          .split(',')
-          .map((t) => t.trim())
-          .where((t) => t.isNotEmpty)
-          .toList();
-
-      final bytes = await _selectedVideo!.readAsBytes();
-
       await widget.videoService.uploadVideo(
         fileBytes: bytes,
         fileName: _selectedVideo!.name,
@@ -92,11 +97,12 @@ class _UploadScreenState extends State<UploadScreen> {
       );
 
       if (mounted) {
-        widget.onUploadComplete();
+        widget.onUploadFinished();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        widget.onUploadFinished();
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);

@@ -22,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentTab = 0;
   int _feedKey = 0;
+  bool _pendingUpload = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   UploadScreen(
                     videoService: widget.videoService,
-                    onUploadComplete: () => setState(() {
+                    onUploadStarted: () => setState(() {
+                      _pendingUpload = true;
+                      _currentTab = 2;
+                    }),
+                    onUploadFinished: () => setState(() {
+                      _pendingUpload = false;
                       _feedKey++;
-                      _currentTab = 0;
                     }),
                   ),
                   ProfileScreen(
                     videoService: widget.videoService,
                     authService: widget.authService,
+                    hasPendingUpload: _pendingUpload,
                   ),
                 ],
               ),
