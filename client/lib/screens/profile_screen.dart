@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:client/models/user.dart';
 import 'package:client/models/video.dart';
+import 'package:client/screens/feed_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
@@ -13,12 +14,14 @@ class ProfileScreen extends StatefulWidget {
   final AuthService authService;
   // If set, shows another user's profile (read-only). If null, shows own profile.
   final String? userId;
+  final void Function(int)? onSwitchTab;
 
   const ProfileScreen({
     super.key,
     required this.videoService,
     required this.authService,
     this.userId,
+    this.onSwitchTab,
   });
 
   @override
@@ -278,6 +281,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _openVideoFeed(List<Video> videos, int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => NeumorphicBackground(
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      FeedScreen(
+                        videoService: widget.videoService,
+                        authService: widget.authService,
+                        initialVideos: videos,
+                        initialIndex: initialIndex,
+                        onSwitchTab: widget.onSwitchTab,
+                      ),
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: NeumorphicButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          style: const NeumorphicStyle(
+                            depth: 2,
+                            boxShape: NeumorphicBoxShape.circle(),
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Color(0xFFB08968),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildFeedBottomNav(ctx),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeedBottomNav(BuildContext ctx) {
+    return Neumorphic(
+      style: NeumorphicStyle(
+        depth: 4,
+        boxShape: NeumorphicBoxShape.roundRect(
+          const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _feedNavItem(ctx, Icons.home_rounded, 'Home', 0),
+            _feedNavItem(ctx, Icons.add_circle_outline_rounded, 'Upload', 1),
+            _feedNavItem(ctx, Icons.person_rounded, 'Profile', 2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _feedNavItem(
+      BuildContext ctx, IconData icon, String label, int index) {
+    final color =
+        NeumorphicTheme.defaultTextColor(ctx).withValues(alpha: 0.4);
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(ctx).pop();
+        widget.onSwitchTab?.call(index);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 28, color: color),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildVideosGrid() {
     final baseUrl = widget.videoService.client.baseUrl;
 
@@ -301,6 +403,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    final readyVideos =
+        _videos.where((v) => v.status == VideoStatus.ready).toList();
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -321,15 +426,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return _buildFailedCard();
         }
 
+        final feedIndex = readyVideos.indexOf(video);
         final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
-        return Image.network(
-          thumbnailUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: const Color(0xFFB08968).withValues(alpha: 0.2),
-            child: const Icon(
-              Icons.videocam_rounded,
-              color: Color(0xFFB08968),
+        return GestureDetector(
+          onTap: () => _openVideoFeed(readyVideos, feedIndex),
+          child: Image.network(
+            thumbnailUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: const Color(0xFFB08968).withValues(alpha: 0.2),
+              child: const Icon(
+                Icons.videocam_rounded,
+                color: Color(0xFFB08968),
+              ),
             ),
           ),
         );

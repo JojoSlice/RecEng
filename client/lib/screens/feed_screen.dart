@@ -10,6 +10,8 @@ class FeedScreen extends StatefulWidget {
   final AuthService authService;
   final bool isVisible;
   final void Function(int)? onSwitchTab;
+  final List<Video>? initialVideos;
+  final int initialIndex;
 
   const FeedScreen({
     super.key,
@@ -17,6 +19,8 @@ class FeedScreen extends StatefulWidget {
     required this.authService,
     this.isVisible = true,
     this.onSwitchTab,
+    this.initialVideos,
+    this.initialIndex = 0,
   });
 
   @override
@@ -24,17 +28,53 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  late Future<List<Video>> _videosFuture;
+  Future<List<Video>>? _videosFuture;
   int _currentIndex = 0;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _videosFuture = widget.videoService.getVideos();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+    if (widget.initialVideos == null) {
+      _videosFuture = widget.videoService.getVideos();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildPageView(List<Video> videos) {
+    return PageView.builder(
+      controller: _pageController,
+      scrollDirection: Axis.vertical,
+      itemCount: videos.length,
+      onPageChanged: (index) => setState(() => _currentIndex = index),
+      itemBuilder: (context, index) {
+        return _VideoItem(
+          key: ValueKey(videos[index].id),
+          video: videos[index],
+          streamUrl: widget.videoService.getStreamUrl(videos[index].id),
+          baseUrl: widget.videoService.client.baseUrl,
+          accessToken: widget.videoService.client.accessToken,
+          isActive: index == _currentIndex && widget.isVisible,
+          videoService: widget.videoService,
+          authService: widget.authService,
+          onSwitchTab: widget.onSwitchTab,
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.initialVideos != null) {
+      return _buildPageView(widget.initialVideos!);
+    }
     return FutureBuilder<List<Video>>(
       future: _videosFuture,
       builder: (context, snapshot) {
@@ -44,25 +84,7 @@ class _FeedScreenState extends State<FeedScreen> {
         if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString()));
         }
-        final videos = snapshot.data!;
-        return PageView.builder(
-          scrollDirection: Axis.vertical,
-          itemCount: videos.length,
-          onPageChanged: (index) => setState(() => _currentIndex = index),
-          itemBuilder: (context, index) {
-            return _VideoItem(
-              key: ValueKey(videos[index].id),
-              video: videos[index],
-              streamUrl: widget.videoService.getStreamUrl(videos[index].id),
-              baseUrl: widget.videoService.client.baseUrl,
-              accessToken: widget.videoService.client.accessToken,
-              isActive: index == _currentIndex && widget.isVisible,
-              videoService: widget.videoService,
-              authService: widget.authService,
-              onSwitchTab: widget.onSwitchTab,
-            );
-          },
-        );
+        return _buildPageView(snapshot.data!);
       },
     );
   }

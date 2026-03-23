@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ValueKey(_profileKey),
                     videoService: widget.videoService,
                     authService: widget.authService,
+                    onSwitchTab: (i) => setState(() => _currentTab = i),
                   ),
                 ],
               ),
