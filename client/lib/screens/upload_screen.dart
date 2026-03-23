@@ -10,11 +10,13 @@ import 'package:video_player/video_player.dart';
 class UploadScreen extends StatefulWidget {
   final VideoService videoService;
   final VoidCallback onUploadAccepted;
+  final bool isVisible;
 
   const UploadScreen({
     super.key,
     required this.videoService,
     required this.onUploadAccepted,
+    this.isVisible = true,
   });
 
   @override
@@ -32,6 +34,16 @@ class _UploadScreenState extends State<UploadScreen> {
   bool _isUploading = false;
   String? _error;
   bool _isUploadHovered = false;
+
+  @override
+  void didUpdateWidget(UploadScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.isVisible && oldWidget.isVisible) {
+      _videoController?.pause();
+    } else if (widget.isVisible && !oldWidget.isVisible) {
+      _videoController?.play();
+    }
+  }
 
   @override
   void dispose() {
