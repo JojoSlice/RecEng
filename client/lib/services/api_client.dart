@@ -43,6 +43,15 @@ class ApiClient {
     return res;
   }
 
+  Future<http.Response> delete(String path) async {
+    final res = await http.delete(Uri.parse('$baseUrl$path'), headers: _headers);
+    if (res.statusCode == 401) {
+      await _refresh();
+      return http.delete(Uri.parse('$baseUrl$path'), headers: _headers);
+    }
+    return res;
+  }
+
   Future<void> _refresh() async {
     final refreshToken = await storage.getRefreshToken();
     if (refreshToken == null) throw Exception('No refresh token');

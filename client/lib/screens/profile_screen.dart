@@ -37,6 +37,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
   bool _isChangePhotoHovered = false;
   bool _isLogoutHovered = false;
+  bool _isFollowHovered = false;
+  bool _isFollowing = false;
+  bool _isFollowLoading = false;
   final _picker = ImagePicker();
   Timer? _pollTimer;
 
@@ -64,10 +67,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? await widget.authService.getCurrentUser()
           : await widget.authService.getUser(widget.userId!);
       final videos = await widget.videoService.getUserVideos(user.id);
+      bool isFollowing = false;
+      if (!_isOwnProfile) {
+        final currentUser = await widget.authService.getCurrentUser();
+        final following = await widget.authService.getFollowing(currentUser.id);
+        isFollowing = following.any((u) => u.id == widget.userId);
+      }
       if (mounted) {
         setState(() {
           _user = user;
           _videos = videos.reversed.toList();
+          _isFollowing = isFollowing;
           _isLoading = false;
         });
         _updatePolling();
@@ -127,6 +137,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _isUploadingPicture = false);
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    setState(() => _isFollowLoading = true);
+    try {
+      if (_isFollowing) {
+        await widget.authService.unfollowUser(widget.userId!);
+      } else {
+        await widget.authService.followUser(widget.userId!);
+      }
+      if (mounted) setState(() => _isFollowing = !_isFollowing);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _isFollowLoading = false);
     }
   }
 
@@ -250,6 +278,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        if (!_isOwnProfile) ...[
+          const SizedBox(height: 4),
+          MouseRegion(
+            onEnter: (_) => setState(() => _isFollowHovered = true),
+            onExit: (_) => setState(() => _isFollowHovered = false),
+            child: NeumorphicButton(
+              onPressed: _isFollowLoading ? null : _toggleFollow,
+              style: NeumorphicStyle(
+                depth: _isFollowHovered ? 1 : 2,
+                boxShape:
+                    NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+              child: _isFollowLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFB08968),
+                      ),
+                    )
+                  : Text(
+                      _isFollowing ? 'FOLLOWING' : 'FOLLOW',
+                      style: TextStyle(
+                        color: _isFollowing
+                            ? const Color(0xFFB08968).withValues(alpha: 0.5)
+                            : const Color(0xFFB08968),
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                        letterSpacing: 2,
+                      ),
+                    ),
+            ),
+          ),
+        ],
         if (_isOwnProfile) ...[
           MouseRegion(
             onEnter: (_) => setState(() => _isChangePhotoHovered = true),
