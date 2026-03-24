@@ -216,6 +216,10 @@ CurrentUser.MapEndpoint(app);
 GetUser.MapEndpoint(app);
 UploadProfilePicture.MapEndpoint(app);
 GetProfilePicture.MapEndpoint(app);
+FollowUser.MapEndpoint(app);
+UnfollowUser.MapEndpoint(app);
+GetFollowers.MapEndpoint(app);
+GetFollowing.MapEndpoint(app);
 GetThumbnail.MapEndpoint(app);
 
 app.Run();

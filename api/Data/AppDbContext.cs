@@ -13,11 +13,27 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Video> Videos => Set<Video>();
     public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<UserFollow> UserFollows => Set<UserFollow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Tag>()
             .HasIndex(t => t.Name)
             .IsUnique();
+
+        modelBuilder.Entity<UserFollow>()
+            .HasKey(f => new { f.FollowerId, f.FollowedId });
+
+        modelBuilder.Entity<UserFollow>()
+            .HasOne(f => f.Follower)
+            .WithMany()
+            .HasForeignKey(f => f.FollowerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserFollow>()
+            .HasOne(f => f.Followed)
+            .WithMany()
+            .HasForeignKey(f => f.FollowedId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
