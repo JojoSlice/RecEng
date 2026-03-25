@@ -23,6 +23,11 @@ class VideoService {
   }
 
   String getStreamUrl(String id) => '${client.baseUrl}/api/videos/$id/stream';
+  String thumbnailUrl(String id) => '${client.baseUrl}/api/videos/$id/thumbnail';
+
+  Map<String, String> get streamHeaders => client.accessToken != null
+      ? {'Authorization': 'Bearer ${client.accessToken}'}
+      : {};
 
   Future<String> uploadVideo({
     required List<int> fileBytes,

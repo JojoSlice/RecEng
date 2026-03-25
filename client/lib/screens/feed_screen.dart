@@ -77,8 +77,6 @@ class _FeedScreenState extends State<FeedScreen> {
           key: ValueKey(videos[index].id),
           video: videos[index],
           streamUrl: widget.videoService.getStreamUrl(videos[index].id),
-          baseUrl: widget.videoService.client.baseUrl,
-          accessToken: widget.videoService.client.accessToken,
           isActive: index == _currentIndex && widget.isVisible,
           videoService: widget.videoService,
           authService: widget.authService,
@@ -168,8 +166,6 @@ class _FeedScreenState extends State<FeedScreen> {
 class _VideoItem extends StatefulWidget {
   final Video video;
   final String streamUrl;
-  final String baseUrl;
-  final String? accessToken;
   final bool isActive;
   final VideoService videoService;
   final AuthService authService;
@@ -180,8 +176,6 @@ class _VideoItem extends StatefulWidget {
     super.key,
     required this.video,
     required this.streamUrl,
-    required this.baseUrl,
-    required this.accessToken,
     required this.isActive,
     required this.videoService,
     required this.authService,
@@ -209,9 +203,7 @@ class _VideoItemState extends State<_VideoItem> {
     try {
       _controller = VideoPlayerController.networkUrl(
         Uri.parse(widget.streamUrl),
-        httpHeaders: widget.accessToken != null
-            ? {'Authorization': 'Bearer ${widget.accessToken}'}
-            : {},
+        httpHeaders: widget.videoService.streamHeaders,
       );
       await _controller.initialize();
       _controller.setLooping(true);
@@ -319,10 +311,10 @@ class _VideoItemState extends State<_VideoItem> {
                         radius: 18,
                         backgroundColor: Colors.white24,
                         backgroundImage: NetworkImage(
-                          '${widget.baseUrl}/api/users/${widget.video.uploader.id}/profile-picture?v=$_pictureCacheKey',
-                          headers: widget.accessToken != null
-                              ? {'Authorization': 'Bearer ${widget.accessToken}'}
-                              : {},
+                          widget.userService.profilePictureUrl(
+                            widget.video.uploader.id,
+                            cacheKey: _pictureCacheKey,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),

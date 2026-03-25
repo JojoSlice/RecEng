@@ -243,10 +243,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileHeader() {
-    final baseUrl = widget.videoService.client.baseUrl;
-    final userId = _user!.id;
-    final profilePicUrl =
-        '$baseUrl/api/users/$userId/profile-picture?v=$_pictureCacheKey';
+    final profilePicUrl = widget.userService.profilePictureUrl(
+      _user!.id,
+      cacheKey: _pictureCacheKey,
+    );
 
     return Column(
       children: [
@@ -395,8 +395,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildVideosGrid() {
-    final baseUrl = widget.videoService.client.baseUrl;
-
     if (_videos.isEmpty) {
       return Neumorphic(
         style: NeumorphicStyle(
@@ -444,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         final feedIndex = readyIndex[video.id]!;
-        final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
+        final thumbnailUrl = widget.videoService.thumbnailUrl(video.id);
         return GestureDetector(
           onTap: () => _openVideoFeed(readyVideos, feedIndex),
           child: Image.network(

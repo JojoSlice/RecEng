@@ -32,6 +32,9 @@ class UserService {
     if (res.statusCode != 204) throw Exception('Failed to follow user');
   }
 
+  String profilePictureUrl(String userId, {int cacheKey = 0}) =>
+      '${client.baseUrl}/api/users/$userId/profile-picture?v=$cacheKey';
+
   Future<void> unfollowUser(String userId) async {
     final res = await client.delete('/api/users/$userId/follow');
     if (res.statusCode != 204) throw Exception('Failed to unfollow user');
