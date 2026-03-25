@@ -404,6 +404,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final readyVideos =
         _videos.where((v) => v.status == VideoStatus.ready).toList();
+    final readyIndex = {
+      for (var i = 0; i < readyVideos.length; i++) readyVideos[i].id: i,
+    };
 
     return GridView.builder(
       shrinkWrap: true,
@@ -425,7 +428,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return _buildFailedCard();
         }
 
-        final feedIndex = readyVideos.indexOf(video);
+        final feedIndex = readyIndex[video.id]!;
         final thumbnailUrl = '$baseUrl/api/videos/${video.id}/thumbnail';
         return GestureDetector(
           onTap: () => _openVideoFeed(readyVideos, feedIndex),
