@@ -45,10 +45,11 @@ class _FeedScreenState extends State<FeedScreen> {
 
   void _switchFeed(bool following) {
     if (_followingFeed == following) return;
+    _pageController.dispose();
+    _pageController = PageController(initialPage: 0);
     setState(() {
       _followingFeed = following;
       _currentIndex = 0;
-      _pageController.jumpToPage(0);
       _videosFuture = following
           ? widget.videoService.getFollowVideos()
           : widget.videoService.getVideos();
