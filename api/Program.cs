@@ -6,6 +6,7 @@ using api.Features.Auth;
 using api.Features.Users;
 using api.Features.Videos;
 using api.Options;
+using MassTransit;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,24 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
 );
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq(
+        (ctx, cfg) =>
+        {
+            cfg.Host(
+                "rabbitmq",
+                "/",
+                h =>
+                {
+                    h.Username("receng");
+                    h.Password("receng");
+                }
+            );
+        }
+    );
+});
 
 builder.Host.UseSerilog(
     (context, services, configuration) =>
@@ -67,15 +86,21 @@ builder
         {
             OnAuthenticationFailed = context =>
             {
-                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                var logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<Program>
+                >();
                 logger.LogWarning(context.Exception, "JWT authentication failed");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                var logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<Program>
+                >();
                 var claims = context.Principal?.Claims.Select(c => $"{c.Type}={c.Value}");
-                logger.LogInformation($"[JWT] Token validated. Claims: {string.Join(", ", claims ?? [])}");
+                logger.LogInformation(
+                    $"[JWT] Token validated. Claims: {string.Join(", ", claims ?? [])}"
+                );
                 return Task.CompletedTask;
             },
         };
@@ -87,66 +112,76 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    options.AddPolicy("auth", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 10,
-                QueueLimit = 0,
-            }
-        )
+    options.AddPolicy(
+        "auth",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 10,
+                    QueueLimit = 0,
+                }
+            )
     );
 
-    options.AddPolicy("upload", httpContext =>
-    {
-        var userId = httpContext.User.FindFirst("sub")?.Value;
-        var key = userId ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return RateLimitPartition.GetFixedWindowLimiter(
-            key,
-            _ => new FixedWindowRateLimiterOptions
-            {
-                Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 5,
-                QueueLimit = 0,
-            }
-        );
-    });
-
-    options.AddPolicy("stream", httpContext =>
-        RateLimitPartition.GetTokenBucketLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new TokenBucketRateLimiterOptions
-            {
-                TokenLimit = 30,
-                TokensPerPeriod = 20,
-                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                AutoReplenishment = true,
-            }
-        )
+    options.AddPolicy(
+        "upload",
+        httpContext =>
+        {
+            var userId = httpContext.User.FindFirst("sub")?.Value;
+            var key = userId ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(
+                key,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 5,
+                    QueueLimit = 0,
+                }
+            );
+        }
     );
 
-    options.AddPolicy("read", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 60,
-                QueueLimit = 0,
-            }
-        )
+    options.AddPolicy(
+        "stream",
+        httpContext =>
+            RateLimitPartition.GetTokenBucketLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new TokenBucketRateLimiterOptions
+                {
+                    TokenLimit = 30,
+                    TokensPerPeriod = 20,
+                    ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true,
+                }
+            )
+    );
+
+    options.AddPolicy(
+        "read",
+        httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 60,
+                    QueueLimit = 0,
+                }
+            )
     );
 });
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:8080", "http://localhost:5033")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
+        policy
+            .WithOrigins("http://localhost:8080", "http://localhost:5033")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
     )
 );
 
@@ -179,12 +214,17 @@ try
     };
     using var checkProcess = Process.Start(ffmpegCheck);
     if (checkProcess is null)
-        app.Logger.LogError("ffmpeg startup check failed: could not start process — video upload and thumbnails will not work");
+        app.Logger.LogError(
+            "ffmpeg startup check failed: could not start process — video upload and thumbnails will not work"
+        );
     else
     {
         await checkProcess.WaitForExitAsync();
         if (checkProcess.ExitCode != 0)
-            app.Logger.LogError("ffmpeg startup check failed with exit code {ExitCode}", checkProcess.ExitCode);
+            app.Logger.LogError(
+                "ffmpeg startup check failed with exit code {ExitCode}",
+                checkProcess.ExitCode
+            );
         else
             app.Logger.LogInformation("ffmpeg is available");
     }
