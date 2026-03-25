@@ -97,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final videos = await widget.videoService.getUserVideos(_user!.id);
       if (mounted) {
-        setState(() => _videos = videos);
+        setState(() => _videos = videos.reversed.toList());
         _updatePolling();
       }
     } catch (_) {}
