@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:client/services/video_service.dart';
 import 'package:client/utils/errors.dart';
+import 'package:client/widgets/hover_neumorphic_button.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,7 +35,6 @@ class _UploadScreenState extends State<UploadScreen> {
   VideoPlayerController? _videoController;
   bool _isUploading = false;
   String? _error;
-  bool _isUploadHovered = false;
 
   @override
   void didUpdateWidget(UploadScreen oldWidget) {
@@ -245,37 +245,30 @@ class _UploadScreenState extends State<UploadScreen> {
                 Text(_error!, style: const TextStyle(color: Colors.red)),
               ],
               const SizedBox(height: 24),
-              MouseRegion(
-                onEnter: (_) => setState(() => _isUploadHovered = true),
-                onExit: (_) => setState(() => _isUploadHovered = false),
-                child: NeumorphicButton(
-                  onPressed: _isUploading ? null : _upload,
-                  style: NeumorphicStyle(
-                    depth: _isUploadHovered ? 2 : 4,
-                    boxShape: NeumorphicBoxShape.roundRect(
-                      BorderRadius.circular(12),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Center(
-                      child: _isUploading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'UPLOAD',
-                              style: TextStyle(
-                                color: Color(0xFFB08968),
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                letterSpacing: 4,
-                              ),
+              HoverNeumorphicButton(
+                onPressed: _isUploading ? null : _upload,
+                boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                depth: 4,
+                hoveredDepth: 2,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Center(
+                    child: _isUploading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'UPLOAD',
+                            style: TextStyle(
+                              color: Color(0xFFB08968),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              letterSpacing: 4,
                             ),
-                    ),
+                          ),
                   ),
                 ),
               ),
@@ -317,7 +310,7 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 }
 
-class _SourceButton extends StatefulWidget {
+class _SourceButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
@@ -329,43 +322,27 @@ class _SourceButton extends StatefulWidget {
   });
 
   @override
-  State<_SourceButton> createState() => _SourceButtonState();
-}
-
-class _SourceButtonState extends State<_SourceButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: NeumorphicButton(
-        onPressed: widget.onTap,
-        style: NeumorphicStyle(
-          depth: _isHovered ? 2 : 4,
-          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          children: [
-            Icon(
-              widget.icon,
-              color: const Color(0xFFB08968),
-              size: 32,
+    return HoverNeumorphicButton(
+      onPressed: onTap,
+      boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      depth: 4,
+      hoveredDepth: 2,
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFFB08968), size: 32),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFB08968),
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              letterSpacing: 2,
             ),
-            const SizedBox(height: 8),
-            Text(
-              widget.label,
-              style: const TextStyle(
-                color: Color(0xFFB08968),
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-                letterSpacing: 2,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
