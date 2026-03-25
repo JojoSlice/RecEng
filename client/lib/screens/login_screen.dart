@@ -2,6 +2,8 @@ import 'package:client/screens/home_screen.dart';
 import 'package:client/screens/register_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
+import 'package:client/utils/errors.dart';
+import 'package:client/widgets/hover_neumorphic_button.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,8 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   String? _error;
   bool _isLoading = false;
-  bool _isLoginHovered = false;
-  bool _isRegisterHovered = false;
 
   @override
   void dispose() {
@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -146,72 +146,53 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(_error!, style: const TextStyle(color: Colors.red)),
                   ],
                   const SizedBox(height: 24),
-                  MouseRegion(
-                    onEnter: (_) => setState(() => _isLoginHovered = true),
-                    onExit: (_) => setState(() => _isLoginHovered = false),
-                    child: NeumorphicButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: NeumorphicStyle(
-                        depth: _isLoginHovered ? 2 : 4,
-                        boxShape: NeumorphicBoxShape.roundRect(
-                          BorderRadius.circular(12),
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Center(
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'LOGIN',
-                                  style: TextStyle(
-                                    color: Color(0xFFB08968),
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                    letterSpacing: 4,
-                                  ),
+                  HoverNeumorphicButton(
+                    onPressed: _isLoading ? null : _login,
+                    boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    depth: 4,
+                    hoveredDepth: 2,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Center(
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text(
+                                'LOGIN',
+                                style: TextStyle(
+                                  color: Color(0xFFB08968),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                  letterSpacing: 4,
                                 ),
-                        ),
+                              ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  MouseRegion(
-                    onEnter: (_) => setState(() => _isRegisterHovered = true),
-                    onExit: (_) => setState(() => _isRegisterHovered = false),
-                    child: NeumorphicButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              RegisterScreen(authService: widget.authService),
-                        ),
+                  HoverNeumorphicButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RegisterScreen(authService: widget.authService),
                       ),
-                      style: NeumorphicStyle(
-                        depth: _isRegisterHovered ? 1 : 2,
-                        boxShape: NeumorphicBoxShape.roundRect(
-                          BorderRadius.circular(12),
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: const SizedBox(
-                        width: double.infinity,
-                        child: Center(
-                          child: Text(
-                            'REGISTER',
-                            style: TextStyle(
-                              color: Color(0xFFB08968),
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16,
-                              letterSpacing: 4,
-                            ),
+                    ),
+                    boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: const SizedBox(
+                      width: double.infinity,
+                      child: Center(
+                        child: Text(
+                          'REGISTER',
+                          style: TextStyle(
+                            color: Color(0xFFB08968),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 16,
+                            letterSpacing: 4,
                           ),
                         ),
                       ),

@@ -1,6 +1,8 @@
 import 'package:client/screens/home_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
+import 'package:client/utils/errors.dart';
+import 'package:client/widgets/hover_neumorphic_button.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,7 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   String? _error;
   bool _isLoading = false;
-  bool _isRegisterHovered = false;
 
   @override
   void dispose() {
@@ -49,7 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -144,18 +145,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text(_error!, style: const TextStyle(color: Colors.red)),
                   ],
                   const SizedBox(height: 24),
-                  MouseRegion(
-                    onEnter: (_) => setState(() => _isRegisterHovered = true),
-                    onExit: (_) => setState(() => _isRegisterHovered = false),
-                    child: NeumorphicButton(
+                  HoverNeumorphicButton(
                     onPressed: _isLoading ? null : _register,
-                    style: NeumorphicStyle(
-                      depth: _isRegisterHovered ? 2 : 4,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(12),
-                      ),
-                    ),
+                    boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
+                    depth: 4,
+                    hoveredDepth: 2,
                     child: SizedBox(
                       width: double.infinity,
                       child: Center(
@@ -163,9 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
+                                child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text(
                                 'REGISTER',
@@ -178,7 +171,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                       ),
                     ),
-                  ),
                   ),
                 ],
               ),

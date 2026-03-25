@@ -6,6 +6,7 @@ import 'package:client/screens/feed_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
+import 'package:client/utils/errors.dart';
 import 'package:client/widgets/app_bottom_nav.dart';
 import 'package:client/widgets/hover_neumorphic_button.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -84,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
+          _error = e.message;
           _isLoading = false;
         });
       }
@@ -132,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     } finally {
       if (mounted) setState(() => _isUploadingPicture = false);
@@ -150,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) setState(() => _isFollowing = !_isFollowing);
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     } finally {
       if (mounted) setState(() => _isFollowLoading = false);
@@ -170,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     }
   }

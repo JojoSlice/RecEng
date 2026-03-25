@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:client/services/video_service.dart';
+import 'package:client/utils/errors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
@@ -134,7 +135,7 @@ class _UploadScreenState extends State<UploadScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.message);
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
