@@ -31,6 +31,7 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<List<Video>>? _videosFuture;
   int _currentIndex = 0;
   late PageController _pageController;
+  bool _followingFeed = false;
 
   @override
   void initState() {
@@ -40,6 +41,18 @@ class _FeedScreenState extends State<FeedScreen> {
     if (widget.initialVideos == null) {
       _videosFuture = widget.videoService.getVideos();
     }
+  }
+
+  void _switchFeed(bool following) {
+    if (_followingFeed == following) return;
+    setState(() {
+      _followingFeed = following;
+      _currentIndex = 0;
+      _pageController.jumpToPage(0);
+      _videosFuture = following
+          ? widget.videoService.getFollowVideos()
+          : widget.videoService.getVideos();
+    });
   }
 
   @override
@@ -70,6 +83,53 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 
+  Widget _buildToggle() {
+    return Positioned(
+      top: 12,
+      left: 0,
+      right: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _toggleItem('FOR YOU', !_followingFeed),
+          const SizedBox(width: 24),
+          _toggleItem('FOLLOWING', _followingFeed),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleItem(String label, bool active) {
+    return GestureDetector(
+      onTap: () => _switchFeed(label == 'FOLLOWING'),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: active ? Colors.white : Colors.white38,
+          fontSize: 13,
+          fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+          letterSpacing: 2,
+          decoration: TextDecoration.none,
+          shadows: const [Shadow(blurRadius: 6)],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyFollowingFeed() {
+    return const Center(
+      child: Text(
+        'Follow someone to see their videos here',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white54,
+          fontSize: 14,
+          decoration: TextDecoration.none,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.initialVideos != null) {
@@ -84,7 +144,15 @@ class _FeedScreenState extends State<FeedScreen> {
         if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString()));
         }
-        return _buildPageView(snapshot.data!);
+        final videos = snapshot.data!;
+        return Stack(
+          children: [
+            videos.isEmpty && _followingFeed
+                ? _buildEmptyFollowingFeed()
+                : _buildPageView(videos),
+            _buildToggle(),
+          ],
+        );
       },
     );
   }

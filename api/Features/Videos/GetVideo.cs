@@ -6,7 +6,7 @@ public static class GetVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/videos/{id}", Handle).RequireRateLimiting("read");
+        app.MapGet("/api/videos/{id:guid}", Handle).RequireRateLimiting("read");
     }
 
     public static async Task<IResult> Handle(Guid id, AppDbContext db, ILogger<AppDbContext> logger)

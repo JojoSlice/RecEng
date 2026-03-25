@@ -56,6 +56,14 @@ class VideoService {
     return json['id'] as String;
   }
 
+  Future<List<Video>> getFollowVideos() async {
+    final res = await client.get('/api/videos/follow');
+    if (res.statusCode != 200) throw Exception('Failed to load feed');
+    return (jsonDecode(res.body) as List)
+        .map((v) => Video.fromJson(v))
+        .toList();
+  }
+
   Future<List<Video>> getUserVideos(String userId) async {
     final res = await client.get('/api/users/$userId/videos');
     if (res.statusCode != 200) throw Exception('Failed to load user videos');
