@@ -16,7 +16,7 @@ class AuthService {
     if (res.statusCode == 401) throw Exception('Invalid username or password');
     if (res.statusCode != 200) throw Exception('Login failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
-    client.accessToken = data.accessToken;
+    client.setToken(data.accessToken);
     await storage.saveTokens(data.accessToken, data.refreshToken);
     return data;
   }
@@ -30,7 +30,7 @@ class AuthService {
     if (res.statusCode == 400) throw Exception('Username and password are required');
     if (res.statusCode != 201) throw Exception('Registration failed');
     final data = AuthResponse.fromJson(jsonDecode(res.body));
-    client.accessToken = data.accessToken;
+    client.setToken(data.accessToken);
     await storage.saveTokens(data.accessToken, data.refreshToken);
     return data;
   }
@@ -40,12 +40,12 @@ class AuthService {
     if (refreshToken != null) {
       await client.post('/api/auth/logout', {'refreshToken': refreshToken});
     }
-    client.accessToken = null;
+    client.clearToken();
     await storage.logout();
   }
 
   Future<void> restoreSession() async {
     final token = await storage.getAccessToken();
-    if (token != null) client.accessToken = token;
+    if (token != null) client.setToken(token);
   }
 }

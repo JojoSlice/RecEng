@@ -8,13 +8,22 @@ class ApiClient {
     defaultValue: 'http://localhost:5033',
   );
   final SecureStorageService storage;
-  String? accessToken;
+  String? _accessToken;
 
   ApiClient(this.storage);
 
+  bool get hasSession => _accessToken != null;
+
+  Map<String, String> get authHeaders => _accessToken != null
+      ? {'Authorization': 'Bearer $_accessToken'}
+      : {};
+
+  void setToken(String token) => _accessToken = token;
+  void clearToken() => _accessToken = null;
+
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
-    if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+    ...authHeaders,
   };
 
   Future<http.Response> get(String path) =>
@@ -48,9 +57,7 @@ class ApiClient {
     void Function(http.MultipartRequest) build,
   ) async {
     final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
-    if (accessToken != null) {
-      request.headers['Authorization'] = 'Bearer $accessToken';
-    }
+    request.headers.addAll(authHeaders);
     build(request);
     return request.send();
   }
@@ -64,12 +71,12 @@ class ApiClient {
       body: jsonEncode({'refreshToken': refreshToken}),
     );
     if (res.statusCode != 200) {
-      accessToken = null;
+      clearToken();
       await storage.logout();
       throw Exception('Session expired');
     }
     final data = jsonDecode(res.body) as Map<String, dynamic>;
-    accessToken = data['accessToken'] as String;
-    await storage.saveTokens(accessToken!, data['refreshToken'] as String);
+    setToken(data['accessToken'] as String);
+    await storage.saveTokens(_accessToken!, data['refreshToken'] as String);
   }
 }

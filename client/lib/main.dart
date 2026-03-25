@@ -19,7 +19,7 @@ void main() async {
   await authService.restoreSession();
 
   bool isLoggedIn = false;
-  if (client.accessToken != null) {
+  if (client.hasSession) {
     try {
       await userService.getCurrentUser();
       isLoggedIn = true;
