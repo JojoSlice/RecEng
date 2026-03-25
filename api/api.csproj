@@ -27,4 +27,8 @@
     <Content Include="assets/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RecEng.Contracts\RecEng.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
