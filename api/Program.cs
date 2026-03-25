@@ -206,6 +206,7 @@ Login.MapEndpoint(app);
 Refresh.MapEndpoint(app);
 Logout.MapEndpoint(app);
 GetVideos.MapEndpoint(app);
+GetFollowVideos.MapEndpoint(app);
 GetVideo.MapEndpoint(app);
 StreamVideo.MapEndpoint(app);
 UploadVideo.MapEndpoint(app);
