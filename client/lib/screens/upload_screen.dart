@@ -55,6 +55,18 @@ class _UploadScreenState extends State<UploadScreen> {
     super.dispose();
   }
 
+  void _reset() {
+    _videoController?.dispose();
+    setState(() {
+      _titleController.clear();
+      _descriptionController.clear();
+      _tagsController.clear();
+      _selectedVideo = null;
+      _videoController = null;
+      _error = null;
+    });
+  }
+
   Future<void> _pickVideo(ImageSource source) async {
     final video = await _picker.pickVideo(source: source);
     if (video != null) {
@@ -129,8 +141,9 @@ class _UploadScreenState extends State<UploadScreen> {
         tags: tags,
       );
 
-      // 202 received — navigate to profile, transcoding runs on server
+      // 202 received — reset form and navigate to profile, transcoding runs on server
       if (mounted) {
+        _reset();
         widget.onUploadAccepted();
       }
     } catch (e) {
