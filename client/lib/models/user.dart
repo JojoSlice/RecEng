@@ -12,6 +12,6 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => User(
         id: json['id'],
         username: json['username'],
-        hasProfilePicture: json['hasProfilePicture'],
+        hasProfilePicture: json['hasProfilePicture'] ?? false,
       );
 }

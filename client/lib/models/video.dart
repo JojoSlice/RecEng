@@ -1,4 +1,4 @@
-import 'package:client/models/uploader.dart';
+import 'package:client/models/user.dart';
 
 enum VideoStatus { processing, ready, failed }
 
@@ -7,7 +7,7 @@ class Video {
   final String title;
   final String description;
   final List<String> tags;
-  final Uploader uploader;
+  final User uploader;
   final DateTime createdAt;
   final VideoStatus status;
 
@@ -26,7 +26,7 @@ class Video {
     title: json['title'],
     description: json['description'],
     tags: List<String>.from(json['tags']),
-    uploader: Uploader.fromJson(json['uploader']),
+    uploader: User.fromJson(json['uploader']),
     createdAt: DateTime.parse(json['createdAt']),
     status: _parseStatus(json['status']),
   );
