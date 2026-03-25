@@ -63,16 +63,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _error = null;
     });
     try {
-      final user = _isOwnProfile
-          ? await widget.authService.getCurrentUser()
-          : await widget.authService.getUser(widget.userId!);
-      final videos = await widget.videoService.getUserVideos(user.id);
+      User user;
+      List<Video> videos;
       bool isFollowing = false;
-      if (!_isOwnProfile) {
-        final currentUser = await widget.authService.getCurrentUser();
+
+      if (_isOwnProfile) {
+        user = await widget.authService.getCurrentUser();
+        videos = await widget.videoService.getUserVideos(user.id);
+      } else {
+        // Fetch profile user, current user, and profile videos in parallel.
+        final results = await Future.wait([
+          widget.authService.getUser(widget.userId!),
+          widget.authService.getCurrentUser(),
+          widget.videoService.getUserVideos(widget.userId!),
+        ]);
+        user = results[0] as User;
+        final currentUser = results[1] as User;
+        videos = results[2] as List<Video>;
         final following = await widget.authService.getFollowing(currentUser.id);
         isFollowing = following.any((u) => u.id == widget.userId);
       }
+
       if (mounted) {
         setState(() {
           _user = user;
