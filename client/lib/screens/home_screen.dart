@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     videoService: widget.videoService,
                     isVisible: _currentTab == 1,
                     onUploadAccepted: () => setState(() {
+                      _feedKey++;
                       _profileKey++;
                       _currentTab = 2;
                     }),
