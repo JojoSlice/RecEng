@@ -1,5 +1,6 @@
 import 'package:client/screens/home_screen.dart';
 import 'package:client/services/auth_service.dart';
+import 'package:client/services/user_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/utils/errors.dart';
 import 'package:client/widgets/hover_neumorphic_button.dart';
@@ -44,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             builder: (_) => HomeScreen(
               videoService: VideoService(widget.authService.client),
               authService: widget.authService,
+              userService: UserService(widget.authService.client),
             ),
           ),
         );

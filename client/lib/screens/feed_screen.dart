@@ -1,5 +1,6 @@
 import 'package:client/screens/profile_screen.dart';
 import 'package:client/services/auth_service.dart';
+import 'package:client/services/user_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/models/video.dart';
 import 'package:client/widgets/app_bottom_nav.dart';
@@ -9,6 +10,7 @@ import 'package:video_player/video_player.dart';
 class FeedScreen extends StatefulWidget {
   final VideoService videoService;
   final AuthService authService;
+  final UserService userService;
   final bool isVisible;
   final void Function(int)? onSwitchTab;
   final List<Video>? initialVideos;
@@ -18,6 +20,7 @@ class FeedScreen extends StatefulWidget {
     super.key,
     required this.videoService,
     required this.authService,
+    required this.userService,
     this.isVisible = true,
     this.onSwitchTab,
     this.initialVideos,
@@ -79,6 +82,7 @@ class _FeedScreenState extends State<FeedScreen> {
           isActive: index == _currentIndex && widget.isVisible,
           videoService: widget.videoService,
           authService: widget.authService,
+          userService: widget.userService,
           onSwitchTab: widget.onSwitchTab,
         );
       },
@@ -169,6 +173,7 @@ class _VideoItem extends StatefulWidget {
   final bool isActive;
   final VideoService videoService;
   final AuthService authService;
+  final UserService userService;
   final void Function(int)? onSwitchTab;
 
   const _VideoItem({
@@ -180,6 +185,7 @@ class _VideoItem extends StatefulWidget {
     required this.isActive,
     required this.videoService,
     required this.authService,
+    required this.userService,
     this.onSwitchTab,
   });
 
@@ -290,6 +296,7 @@ class _VideoItemState extends State<_VideoItem> {
                                 child: ProfileScreen(
                                   videoService: widget.videoService,
                                   authService: widget.authService,
+                                  userService: widget.userService,
                                   userId: widget.video.uploader.id,
                                 ),
                               ),

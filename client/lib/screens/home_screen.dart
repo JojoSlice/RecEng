@@ -2,17 +2,20 @@ import 'package:client/screens/feed_screen.dart';
 import 'package:client/screens/profile_screen.dart';
 import 'package:client/screens/upload_screen.dart';
 import 'package:client/services/auth_service.dart';
+import 'package:client/services/user_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/widgets/app_bottom_nav.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class HomeScreen extends StatefulWidget {
   final AuthService authService;
+  final UserService userService;
   final VideoService videoService;
 
   const HomeScreen({
     super.key,
     required this.authService,
+    required this.userService,
     required this.videoService,
   });
 
@@ -39,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ValueKey(_feedKey),
                     videoService: widget.videoService,
                     authService: widget.authService,
+                    userService: widget.userService,
                     isVisible: _currentTab == 0,
                     onSwitchTab: (i) => setState(() => _currentTab = i),
                   ),
@@ -55,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ValueKey(_profileKey),
                     videoService: widget.videoService,
                     authService: widget.authService,
+                    userService: widget.userService,
                     onSwitchTab: (i) => setState(() => _currentTab = i),
                   ),
                 ],

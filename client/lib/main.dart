@@ -3,6 +3,7 @@ import 'package:client/screens/login_screen.dart';
 import 'package:client/services/api_client.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/secure_storage_service.dart';
+import 'package:client/services/user_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,26 +14,28 @@ void main() async {
   final storage = SecureStorageService();
   final client = ApiClient(storage);
   final authService = AuthService(client, storage);
+  final userService = UserService(client);
 
   await authService.restoreSession();
 
   bool isLoggedIn = false;
   if (client.accessToken != null) {
     try {
-      await authService.getCurrentUser();
+      await userService.getCurrentUser();
       isLoggedIn = true;
     } catch (_) {
       // Token invalid or expired, user must log in
     }
   }
 
-  runApp(MainApp(authService: authService, isLoggedIn: isLoggedIn));
+  runApp(MainApp(authService: authService, userService: userService, isLoggedIn: isLoggedIn));
 }
 
 class MainApp extends StatelessWidget {
   final AuthService authService;
+  final UserService userService;
   final bool isLoggedIn;
-  const MainApp({super.key, required this.authService, required this.isLoggedIn});
+  const MainApp({super.key, required this.authService, required this.userService, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +68,7 @@ class MainApp extends StatelessWidget {
           child: isLoggedIn
               ? HomeScreen(
                   authService: authService,
+                  userService: userService,
                   videoService: VideoService(authService.client),
                 )
               : LoginScreen(authService: authService),

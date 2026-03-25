@@ -5,6 +5,7 @@ import 'package:client/models/video.dart';
 import 'package:client/screens/feed_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/services/auth_service.dart';
+import 'package:client/services/user_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/utils/errors.dart';
 import 'package:client/widgets/app_bottom_nav.dart';
@@ -15,6 +16,7 @@ import 'package:image_picker/image_picker.dart';
 class ProfileScreen extends StatefulWidget {
   final VideoService videoService;
   final AuthService authService;
+  final UserService userService;
   // If set, shows another user's profile (read-only). If null, shows own profile.
   final String? userId;
   final void Function(int)? onSwitchTab;
@@ -23,6 +25,7 @@ class ProfileScreen extends StatefulWidget {
     super.key,
     required this.videoService,
     required this.authService,
+    required this.userService,
     this.userId,
     this.onSwitchTab,
   });
@@ -68,19 +71,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bool isFollowing = false;
 
       if (_isOwnProfile) {
-        user = await widget.authService.getCurrentUser();
+        user = await widget.userService.getCurrentUser();
         videos = await widget.videoService.getUserVideos(user.id);
       } else {
         // Fetch profile user, current user, and profile videos in parallel.
         final results = await Future.wait([
-          widget.authService.getUser(widget.userId!),
-          widget.authService.getCurrentUser(),
+          widget.userService.getUser(widget.userId!),
+          widget.userService.getCurrentUser(),
           widget.videoService.getUserVideos(widget.userId!),
         ]);
         user = results[0] as User;
         final currentUser = results[1] as User;
         videos = results[2] as List<Video>;
-        final following = await widget.authService.getFollowing(currentUser.id);
+        final following = await widget.userService.getFollowing(currentUser.id);
         isFollowing = following.any((u) => u.id == widget.userId);
       }
 
@@ -155,9 +158,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isFollowLoading = true);
     try {
       if (_isFollowing) {
-        await widget.authService.unfollowUser(widget.userId!);
+        await widget.userService.unfollowUser(widget.userId!);
       } else {
-        await widget.authService.followUser(widget.userId!);
+        await widget.userService.followUser(widget.userId!);
       }
       if (mounted) setState(() => _isFollowing = !_isFollowing);
     } catch (e) {
@@ -352,6 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       FeedScreen(
                         videoService: widget.videoService,
                         authService: widget.authService,
+                        userService: widget.userService,
                         initialVideos: videos,
                         initialIndex: initialIndex,
                         onSwitchTab: widget.onSwitchTab,
