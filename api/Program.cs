@@ -262,5 +262,6 @@ UnfollowUser.MapEndpoint(app);
 GetFollowers.MapEndpoint(app);
 GetFollowing.MapEndpoint(app);
 GetThumbnail.MapEndpoint(app);
+LogInteraction.MapEndpoints(app);
 
 app.Run();
