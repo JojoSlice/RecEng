@@ -263,5 +263,7 @@ GetFollowers.MapEndpoint(app);
 GetFollowing.MapEndpoint(app);
 GetThumbnail.MapEndpoint(app);
 LogInteraction.MapEndpoints(app);
+LikeVideo.MapEndpoint(app);
+UnLikeVideo.MapEndpoint(app);
 
 app.Run();
