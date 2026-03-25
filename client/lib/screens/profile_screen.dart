@@ -6,6 +6,7 @@ import 'package:client/screens/feed_screen.dart';
 import 'package:client/screens/login_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
+import 'package:client/widgets/app_bottom_nav.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -383,63 +384,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                _buildFeedBottomNav(ctx),
+                AppBottomNav(
+                  onTap: (i) {
+                    Navigator.of(ctx).pop();
+                    widget.onSwitchTab?.call(i);
+                  },
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeedBottomNav(BuildContext ctx) {
-    return Neumorphic(
-      style: NeumorphicStyle(
-        depth: 4,
-        boxShape: NeumorphicBoxShape.roundRect(
-          const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 32),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _feedNavItem(ctx, Icons.home_rounded, 'Home', 0),
-            _feedNavItem(ctx, Icons.add_circle_outline_rounded, 'Upload', 1),
-            _feedNavItem(ctx, Icons.person_rounded, 'Profile', 2),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _feedNavItem(
-      BuildContext ctx, IconData icon, String label, int index) {
-    final color =
-        NeumorphicTheme.defaultTextColor(ctx).withValues(alpha: 0.4);
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(ctx).pop();
-        widget.onSwitchTab?.call(index);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 28, color: color),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
         ),
       ),
     );
