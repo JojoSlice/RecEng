@@ -4,11 +4,11 @@ using api.Data;
 
 namespace api.Features.Videos;
 
-public static class LikeVideo
+public static class UnLikeVideo
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/videos/{videoId:guid}/like", Handle)
+        app.MapPost("/api/videos/{videoId:guid}/unlike", Handle)
             .RequireAuthorization()
             .RequireRateLimiting("read");
     }
@@ -19,17 +19,13 @@ public static class LikeVideo
         if (string.IsNullOrEmpty(idClaim) || !Guid.TryParse(idClaim, out Guid currentUserId))
             return Results.Unauthorized();
 
-        var targetExists = await db.Videos.AnyAsync(v => v.Id == videoId);
-        if (!targetExists)
-            return Results.NotFound(new { message = "Video not found" });
-
-        var alreadyLiking = await db.VideoLikes.AnyAsync(l =>
+        var like = await db.VideoLikes.FirstOrDefaultAsync(l =>
             l.UserId == currentUserId && l.VideoId == videoId
         );
-        if (alreadyLiking)
-            return Results.Conflict(new { message = "Already liking" });
+        if (like == null)
+            return Results.Conflict(new { message = "Already unlike" });
 
-        db.VideoLikes.Add(new VideoLike(currentUserId, videoId));
+        db.VideoLikes.Remove(like);
         await db.SaveChangesAsync();
 
         return Results.NoContent();
