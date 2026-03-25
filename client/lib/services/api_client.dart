@@ -43,6 +43,18 @@ class ApiClient {
     return res;
   }
 
+  Future<http.StreamedResponse> multipart(
+    String path,
+    void Function(http.MultipartRequest) build,
+  ) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+    if (accessToken != null) {
+      request.headers['Authorization'] = 'Bearer $accessToken';
+    }
+    build(request);
+    return request.send();
+  }
+
   Future<http.Response> delete(String path) async {
     final res = await http.delete(Uri.parse('$baseUrl$path'), headers: _headers);
     if (res.statusCode == 401) {

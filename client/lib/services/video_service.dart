@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:client/models/video.dart';
 import 'package:client/services/api_client.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; // for MultipartFile
 
 class VideoService {
   final ApiClient client;
@@ -31,21 +31,15 @@ class VideoService {
     required String description,
     required List<String> tags,
   }) async {
-    final uri = Uri.parse('${client.baseUrl}/api/videos/');
-    final request = http.MultipartRequest('POST', uri);
+    final response = await client.multipart('/api/videos/', (req) {
+      req.fields['title'] = title;
+      req.fields['description'] = description;
+      for (var i = 0; i < tags.length; i++) {
+        req.fields['tags[$i]'] = tags[i];
+      }
+      req.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: fileName));
+    });
 
-    if (client.accessToken != null) {
-      request.headers['Authorization'] = 'Bearer ${client.accessToken}';
-    }
-
-    request.fields['title'] = title;
-    request.fields['description'] = description;
-    for (var i = 0; i < tags.length; i++) {
-      request.fields['tags[$i]'] = tags[i];
-    }
-    request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: fileName));
-
-    final response = await request.send();
     if (response.statusCode != 202) {
       final body = await response.stream.bytesToString();
       throw Exception(body);
@@ -76,18 +70,10 @@ class VideoService {
     required List<int> fileBytes,
     required String fileName,
   }) async {
-    final uri = Uri.parse('${client.baseUrl}/api/users/me/profile-picture');
-    final request = http.MultipartRequest('POST', uri);
+    final response = await client.multipart('/api/users/me/profile-picture', (req) {
+      req.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: fileName));
+    });
 
-    if (client.accessToken != null) {
-      request.headers['Authorization'] = 'Bearer ${client.accessToken}';
-    }
-
-    request.files.add(
-      http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
-    );
-
-    final response = await request.send();
     if (response.statusCode != 200) {
       final body = await response.stream.bytesToString();
       throw Exception(body);
