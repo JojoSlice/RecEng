@@ -17,28 +17,28 @@ class ApiClient {
     if (accessToken != null) 'Authorization': 'Bearer $accessToken',
   };
 
-  Future<http.Response> get(String path) async {
-    final res = await http.get(Uri.parse('$baseUrl$path'), headers: _headers);
-    if (res.statusCode == 401) {
-      await _refresh();
-      return http.get(Uri.parse('$baseUrl$path'), headers: _headers);
-    }
-    return res;
-  }
+  Future<http.Response> get(String path) =>
+      _withRetry(() => http.get(Uri.parse('$baseUrl$path'), headers: _headers));
 
-  Future<http.Response> post(String path, Object body) async {
-    final res = await http.post(
+  Future<http.Response> post(String path, Object body) {
+    Future<http.Response> send() => http.post(
       Uri.parse('$baseUrl$path'),
       headers: _headers,
       body: jsonEncode(body),
     );
-    if (res.statusCode == 401 && path != '/api/auth/refresh') {
+    // Skip retry for the refresh endpoint itself to avoid loops.
+    if (path == '/api/auth/refresh') return send();
+    return _withRetry(send);
+  }
+
+  Future<http.Response> delete(String path) =>
+      _withRetry(() => http.delete(Uri.parse('$baseUrl$path'), headers: _headers));
+
+  Future<http.Response> _withRetry(Future<http.Response> Function() send) async {
+    final res = await send();
+    if (res.statusCode == 401) {
       await _refresh();
-      return http.post(
-        Uri.parse('$baseUrl$path'),
-        headers: _headers,
-        body: jsonEncode(body),
-      );
+      return send();
     }
     return res;
   }
@@ -53,15 +53,6 @@ class ApiClient {
     }
     build(request);
     return request.send();
-  }
-
-  Future<http.Response> delete(String path) async {
-    final res = await http.delete(Uri.parse('$baseUrl$path'), headers: _headers);
-    if (res.statusCode == 401) {
-      await _refresh();
-      return http.delete(Uri.parse('$baseUrl$path'), headers: _headers);
-    }
-    return res;
   }
 
   Future<void> _refresh() async {
