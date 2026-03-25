@@ -93,17 +93,17 @@ class _FeedScreenState extends State<FeedScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _toggleItem('FOR YOU', !_followingFeed),
+          _toggleItem('FOR YOU', following: false, active: !_followingFeed),
           const SizedBox(width: 24),
-          _toggleItem('FOLLOWING', _followingFeed),
+          _toggleItem('FOLLOWING', following: true, active: _followingFeed),
         ],
       ),
     );
   }
 
-  Widget _toggleItem(String label, bool active) {
+  Widget _toggleItem(String label, {required bool following, required bool active}) {
     return GestureDetector(
-      onTap: () => _switchFeed(label == 'FOLLOWING'),
+      onTap: () => _switchFeed(following),
       child: Text(
         label,
         style: TextStyle(
