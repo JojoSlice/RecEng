@@ -7,6 +7,7 @@ import 'package:client/screens/login_screen.dart';
 import 'package:client/services/auth_service.dart';
 import 'package:client/services/video_service.dart';
 import 'package:client/widgets/app_bottom_nav.dart';
+import 'package:client/widgets/hover_neumorphic_button.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -36,9 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _error;
   bool _isUploadingPicture = false;
   int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
-  bool _isChangePhotoHovered = false;
-  bool _isLogoutHovered = false;
-  bool _isFollowHovered = false;
   bool _isFollowing = false;
   bool _isFollowLoading = false;
   final _picker = ImagePicker();
@@ -281,62 +279,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 16),
         if (!_isOwnProfile) ...[
           const SizedBox(height: 4),
-          MouseRegion(
-            onEnter: (_) => setState(() => _isFollowHovered = true),
-            onExit: (_) => setState(() => _isFollowHovered = false),
-            child: NeumorphicButton(
-              onPressed: _isFollowLoading ? null : _toggleFollow,
-              style: NeumorphicStyle(
-                depth: _isFollowHovered ? 1 : 2,
-                boxShape:
-                    NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-              child: _isFollowLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFFB08968),
-                      ),
-                    )
-                  : Text(
-                      _isFollowing ? 'FOLLOWING' : 'FOLLOW',
-                      style: TextStyle(
-                        color: _isFollowing
-                            ? const Color(0xFFB08968).withValues(alpha: 0.5)
-                            : const Color(0xFFB08968),
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                        letterSpacing: 2,
-                      ),
+          HoverNeumorphicButton(
+            onPressed: _isFollowLoading ? null : _toggleFollow,
+            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+            child: _isFollowLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFFB08968),
                     ),
-            ),
+                  )
+                : Text(
+                    _isFollowing ? 'FOLLOWING' : 'FOLLOW',
+                    style: TextStyle(
+                      color: _isFollowing
+                          ? const Color(0xFFB08968).withValues(alpha: 0.5)
+                          : const Color(0xFFB08968),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                      letterSpacing: 2,
+                    ),
+                  ),
           ),
         ],
         if (_isOwnProfile) ...[
-          MouseRegion(
-            onEnter: (_) => setState(() => _isChangePhotoHovered = true),
-            onExit: (_) => setState(() => _isChangePhotoHovered = false),
-            child: NeumorphicButton(
-              onPressed: _isUploadingPicture ? null : _changeProfilePicture,
-              style: NeumorphicStyle(
-                depth: _isChangePhotoHovered ? 1 : 2,
-                boxShape:
-                    NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: const Text(
-                'CHANGE PHOTO',
-                style: TextStyle(
-                  color: Color(0xFFB08968),
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12,
-                  letterSpacing: 2,
-                ),
+          HoverNeumorphicButton(
+            onPressed: _isUploadingPicture ? null : _changeProfilePicture,
+            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: const Text(
+              'CHANGE PHOTO',
+              style: TextStyle(
+                color: Color(0xFFB08968),
+                fontWeight: FontWeight.w400,
+                fontSize: 12,
+                letterSpacing: 2,
               ),
             ),
           ),
@@ -518,27 +498,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLogoutButton() {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isLogoutHovered = true),
-      onExit: (_) => setState(() => _isLogoutHovered = false),
-      child: NeumorphicButton(
-        onPressed: _logout,
-        style: NeumorphicStyle(
-          depth: _isLogoutHovered ? 2 : 4,
-          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: const SizedBox(
-          width: double.infinity,
-          child: Center(
-            child: Text(
-              'LOGOUT',
-              style: TextStyle(
-                color: Color(0xFFB08968),
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
-                letterSpacing: 4,
-              ),
+    return HoverNeumorphicButton(
+      onPressed: _logout,
+      boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      depth: 4,
+      hoveredDepth: 2,
+      child: const SizedBox(
+        width: double.infinity,
+        child: Center(
+          child: Text(
+            'LOGOUT',
+            style: TextStyle(
+              color: Color(0xFFB08968),
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+              letterSpacing: 4,
             ),
           ),
         ),
