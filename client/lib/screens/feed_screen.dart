@@ -250,6 +250,12 @@ class _VideoItemState extends State<_VideoItem> {
         await widget.videoService.likeVideo(widget.video.id);
       }
       setState(() => _liked = !_liked);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Something went wrong, try again')),
+        );
+      }
     } finally {
       setState(() => _likeLoading = false);
     }
