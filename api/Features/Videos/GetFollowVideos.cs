@@ -30,10 +30,17 @@ public static class GetFollowVideos
             .OrderByDescending(v => v.CreatedAt)
             .Include(v => v.Tags)
             .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
+            .Select(r => new
+            {
+                r.Video,
+                r.Username,
+                LikeCount = db.VideoLikes.Count(l => l.VideoId == r.Video.Id),
+                IsLikedByMe = db.VideoLikes.Any(l => l.VideoId == r.Video.Id && l.UserId == userId),
+            })
             .ToListAsync();
 
         logger.LogInformation("GetFollowVideos, Count: {Count}", results.Count);
 
-        return Results.Ok(results.Select(r => VideoResponse.From(r.Video, r.Username)));
+        return Results.Ok(results.Select(r => VideoResponse.From(r.Video, r.Username, r.LikeCount, r.IsLikedByMe)));
     }
 }

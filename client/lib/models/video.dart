@@ -10,6 +10,8 @@ class Video {
   final User uploader;
   final DateTime createdAt;
   final VideoStatus status;
+  final int likeCount;
+  final bool isLiked;
 
   Video({
     required this.id,
@@ -19,6 +21,8 @@ class Video {
     required this.uploader,
     required this.createdAt,
     required this.status,
+    required this.likeCount,
+    required this.isLiked,
   });
 
   factory Video.fromJson(Map<String, dynamic> json) => Video(
@@ -29,6 +33,8 @@ class Video {
     uploader: User.fromJson(json['uploader']),
     createdAt: DateTime.parse(json['createdAt']),
     status: _parseStatus(json['status']),
+    likeCount: json['likeCount'] as int,
+    isLiked: json['isLikedByMe'] as bool,
   );
 
   static VideoStatus _parseStatus(dynamic s) {

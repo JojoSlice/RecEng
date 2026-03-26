@@ -192,12 +192,13 @@ class _VideoItemState extends State<_VideoItem> {
   bool _initialized = false;
   String? _error;
   final int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
-  bool _liked = false;
+  late bool _liked;
   bool _likeLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _liked = widget.video.isLiked;
     _initController();
   }
 
