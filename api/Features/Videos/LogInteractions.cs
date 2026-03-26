@@ -10,48 +10,27 @@ public static class LogInteraction
 
     public static void MapEndpoints(IEndpointRouteBuilder app)
     {
-        app.MapPost(
-                "/videos/{id:guid}/watch",
-                async (
-                    Guid id,
-                    WatchRequest request,
-                    ClaimsPrincipal user,
-                    IPublishEndpoint publishEndpoint
-                ) =>
-                {
-                    var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        app.MapPost("/videos/{id:guid}/watch", Handle).RequireAuthorization();
+    }
 
-                    await publishEndpoint.Publish(
-                        new VideoWatchedEvent(
-                            VideoId: id,
-                            UserId: userId,
-                            WatchSeconds: request.WatchSeconds,
-                            OccurredAt: DateTime.UtcNow
-                        )
-                    );
+    public static async Task<IResult> Handle(
+        Guid id,
+        WatchRequest request,
+        ClaimsPrincipal user,
+        IPublishEndpoint publishEndpoint
+    )
+    {
+        var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-                    return Results.NoContent();
-                }
+        await publishEndpoint.Publish(
+            new VideoWatchedEvent(
+                VideoId: id,
+                UserId: userId,
+                WatchSeconds: request.WatchSeconds,
+                OccurredAt: DateTime.UtcNow
             )
-            .RequireAuthorization();
+        );
 
-        app.MapPost(
-                "/videos/{id:guid}/like",
-                async (Guid id, ClaimsPrincipal user, IPublishEndpoint publishEndpoint) =>
-                {
-                    var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-                    await publishEndpoint.Publish(
-                        new VideoLikedEvent(
-                            VideoId: id,
-                            UserId: userId,
-                            OccurredAt: DateTime.UtcNow
-                        )
-                    );
-
-                    return Results.NoContent();
-                }
-            )
-            .RequireAuthorization();
+        return Results.NoContent();
     }
 }

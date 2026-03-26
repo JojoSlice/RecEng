@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Data;
+using MassTransit;
+using RecEng.Contracts.Events;
 
 namespace api.Features.Videos;
 
@@ -13,7 +15,12 @@ public static class LikeVideo
             .RequireRateLimiting("read");
     }
 
-    private static async Task<IResult> Handle(Guid videoId, AppDbContext db, ClaimsPrincipal user)
+    private static async Task<IResult> Handle(
+        Guid videoId,
+        AppDbContext db,
+        ClaimsPrincipal user,
+        IPublishEndpoint publishEndpoint
+    )
     {
         var idClaim = user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrEmpty(idClaim) || !Guid.TryParse(idClaim, out Guid currentUserId))
@@ -31,6 +38,14 @@ public static class LikeVideo
 
         db.VideoLikes.Add(new VideoLike(currentUserId, videoId));
         await db.SaveChangesAsync();
+
+        await publishEndpoint.Publish(
+            new VideoLikedEvent(
+                VideoId: videoId,
+                UserId: currentUserId,
+                OccurredAt: DateTime.UtcNow
+            )
+        );
 
         return Results.NoContent();
     }
