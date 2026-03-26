@@ -43,7 +43,7 @@ public static class LikeVideo
             new VideoLikedEvent(
                 VideoId: videoId,
                 UserId: currentUserId,
-                OccurredAt: DateTime.UtcNow
+                OccurredAt: DateTimeOffset.UtcNow
             )
         );
 

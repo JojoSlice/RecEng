@@ -39,7 +39,7 @@ public static class UnLikeVideo
             new VideoUnlikedEvent(
                 VideoId: videoId,
                 UserId: currentUserId,
-                OccurredAt: DateTime.UtcNow
+                OccurredAt: DateTimeOffset.UtcNow
             )
         );
 

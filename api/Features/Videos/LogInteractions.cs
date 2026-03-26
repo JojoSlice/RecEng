@@ -27,7 +27,7 @@ public static class LogInteraction
                 VideoId: id,
                 UserId: userId,
                 WatchSeconds: request.WatchSeconds,
-                OccurredAt: DateTime.UtcNow
+                OccurredAt: DateTimeOffset.UtcNow
             )
         );
 
