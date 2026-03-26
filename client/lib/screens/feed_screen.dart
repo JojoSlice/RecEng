@@ -192,6 +192,8 @@ class _VideoItemState extends State<_VideoItem> {
   bool _initialized = false;
   String? _error;
   final int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
+  bool _liked = false;
+  bool _likeLoading = false;
 
   @override
   void initState() {
@@ -235,6 +237,21 @@ class _VideoItemState extends State<_VideoItem> {
     setState(() {
       _controller.value.isPlaying ? _controller.pause() : _controller.play();
     });
+  }
+
+  Future<void> _toggleLike() async {
+    if (_likeLoading) return;
+    setState(() => _likeLoading = true);
+    try {
+      if (_liked) {
+        await widget.videoService.unlikeVideo(widget.video.id);
+      } else {
+        await widget.videoService.likeVideo(widget.video.id);
+      }
+      setState(() => _liked = !_liked);
+    } finally {
+      setState(() => _likeLoading = false);
+    }
   }
 
   @override
@@ -361,6 +378,25 @@ class _VideoItemState extends State<_VideoItem> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: _toggleLike,
+                  child: _likeLoading
+                      ? const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          _liked ? Icons.favorite : Icons.favorite_border,
+                          color: _liked ? Colors.redAccent : Colors.white,
+                          size: 32,
+                          shadows: const [Shadow(blurRadius: 6)],
+                        ),
                 ),
               ],
             ),

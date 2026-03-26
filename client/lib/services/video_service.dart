@@ -69,6 +69,20 @@ class VideoService {
         .toList();
   }
 
+  Future<void> likeVideo(String id) async {
+    final res = await client.post('/api/videos/$id/like', {});
+    if (res.statusCode != 204 && res.statusCode != 409) {
+      throw Exception('Failed to like video');
+    }
+  }
+
+  Future<void> unlikeVideo(String id) async {
+    final res = await client.post('/api/videos/$id/unlike', {});
+    if (res.statusCode != 204 && res.statusCode != 409) {
+      throw Exception('Failed to unlike video');
+    }
+  }
+
   Future<void> uploadProfilePicture({
     required List<int> fileBytes,
     required String fileName,
