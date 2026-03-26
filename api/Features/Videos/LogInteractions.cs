@@ -10,7 +10,7 @@ public static class LogInteraction
 
     public static void MapEndpoints(IEndpointRouteBuilder app)
     {
-        app.MapPost("/videos/{id:guid}/watch", Handle).RequireAuthorization();
+        app.MapPost("/api/videos/{id:guid}/watch", Handle).RequireAuthorization();
     }
 
     public static async Task<IResult> Handle(
