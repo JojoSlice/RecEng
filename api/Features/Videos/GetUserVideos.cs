@@ -20,7 +20,7 @@ public static class GetUserVideos
 
         var results = await db.Videos
             .Include(v => v.Tags)
-            .Where(v => v.UploadedBy == id)
+            .Where(v => v.UploadedBy == id && v.Status == VideoStatus.Ready)
             .Join(db.Users, v => v.UploadedBy, u => u.Id, (v, u) => new { Video = v, u.Username })
             .Select(r => new
             {
