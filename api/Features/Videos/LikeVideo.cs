@@ -12,7 +12,7 @@ public static class LikeVideo
     {
         app.MapPost("/api/videos/{videoId:guid}/like", Handle)
             .RequireAuthorization()
-            .RequireRateLimiting("read");
+            .RequireRateLimiting("write");
     }
 
     private static async Task<IResult> Handle(

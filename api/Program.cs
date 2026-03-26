@@ -173,6 +173,24 @@ builder.Services.AddRateLimiter(options =>
                 }
             )
     );
+
+    options.AddPolicy(
+        "write",
+        httpContext =>
+        {
+            var userId = httpContext.User.FindFirst("sub")?.Value;
+            var key = userId ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(
+                key,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 30,
+                    QueueLimit = 0,
+                }
+            );
+        }
+    );
 });
 
 builder.Services.AddCors(options =>

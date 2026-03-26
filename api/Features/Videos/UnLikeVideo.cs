@@ -12,7 +12,7 @@ public static class UnLikeVideo
     {
         app.MapPost("/api/videos/{videoId:guid}/unlike", Handle)
             .RequireAuthorization()
-            .RequireRateLimiting("read");
+            .RequireRateLimiting("write");
     }
 
     private static async Task<IResult> Handle(

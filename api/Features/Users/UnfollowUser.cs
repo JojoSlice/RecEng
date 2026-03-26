@@ -10,7 +10,7 @@ public static class UnfollowUser
     {
         app.MapDelete("/api/users/{userId:guid}/follow", Handle)
             .RequireAuthorization()
-            .RequireRateLimiting("read");
+            .RequireRateLimiting("write");
     }
 
     private static async Task<IResult> Handle(Guid userId, AppDbContext db, ClaimsPrincipal user)
