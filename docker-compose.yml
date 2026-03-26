@@ -78,6 +78,19 @@ services:
       timeout: 5s
       retries: 10
 
+  analytics-service:
+    build: ./analytics-service
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      timescale:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Analytics: "Host=timescale;Port=5432;Database=analytics;Username=receng;Password=receng"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Username: receng
+      RabbitMq__Password: receng
+
 volumes:
   postgres_data:
   uploads_data:
