@@ -83,6 +83,10 @@ class VideoService {
     }
   }
 
+  Future<void> logWatch(String id, int watchSeconds) async {
+    await client.post('/api/videos/$id/watch', {'watchSeconds': watchSeconds});
+  }
+
   Future<void> uploadProfilePicture({
     required List<int> fileBytes,
     required String fileName,

@@ -194,6 +194,7 @@ class _VideoItemState extends State<_VideoItem> {
   final int _pictureCacheKey = DateTime.now().millisecondsSinceEpoch;
   late bool _liked;
   bool _likeLoading = false;
+  final Stopwatch _watchTimer = Stopwatch();
 
   @override
   void initState() {
@@ -210,7 +211,10 @@ class _VideoItemState extends State<_VideoItem> {
       );
       await _controller.initialize();
       _controller.setLooping(true);
-      if (widget.isActive) _controller.play();
+      if (widget.isActive) {
+        _controller.play();
+        _watchTimer.start();
+      }
       if (mounted) setState(() => _initialized = true);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
@@ -223,13 +227,26 @@ class _VideoItemState extends State<_VideoItem> {
     if (!_initialized) return;
     if (widget.isActive && !oldWidget.isActive) {
       _controller.play();
+      _watchTimer.start();
     } else if (!widget.isActive && oldWidget.isActive) {
       _controller.pause();
+      _watchTimer.stop();
+      _sendWatchEvent();
+      _watchTimer.reset();
+    }
+  }
+
+  void _sendWatchEvent() {
+    final seconds = _watchTimer.elapsed.inSeconds;
+    if (seconds > 0) {
+      widget.videoService.logWatch(widget.video.id, seconds);
     }
   }
 
   @override
   void dispose() {
+    _watchTimer.stop();
+    _sendWatchEvent();
     _controller.dispose();
     super.dispose();
   }
