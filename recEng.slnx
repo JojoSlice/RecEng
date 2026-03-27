@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="analytics-service/analytics-service.csproj" />
   <Project Path="api.Tests/api.Tests.csproj" />
   <Project Path="api/api.csproj" />
+  <Project Path="RecEng.Contracts/RecEng.Contracts.csproj" />
 </Solution>
