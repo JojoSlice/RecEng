@@ -1,7 +1,34 @@
-using analytics_service;
+using analytics_service.Consumers;
+using MassTransit;
+using Npgsql;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
+
+var connectionString = builder.Configuration.GetConnectionString("Analytics");
+builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString!));
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<VideoWatchedConsumer>();
+    x.AddConsumer<VideoLikedConsumer>();
+    x.AddConsumer<VideoUnlikedConsumer>();
+
+    x.UsingRabbitMq(
+        (ctx, cfg) =>
+        {
+            cfg.Host(
+                builder.Configuration["RabbitMq__Host"],
+                "/",
+                h =>
+                {
+                    h.Username(builder.Configuration["RabbitMq__Username"]!);
+                    h.Password(builder.Configuration["RabbitMq__Password"]!);
+                }
+            );
+            cfg.ConfigureEndpoints(ctx);
+        }
+    );
+});
 
 var host = builder.Build();
 host.Run();
