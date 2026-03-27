@@ -4,7 +4,7 @@ using RecEng.Contracts.Events;
 
 namespace api.Features.Videos;
 
-public static class LogInteraction
+public static class WatchVideo
 {
     public record WatchRequest(int WatchSeconds);
 

@@ -280,7 +280,7 @@ UnfollowUser.MapEndpoint(app);
 GetFollowers.MapEndpoint(app);
 GetFollowing.MapEndpoint(app);
 GetThumbnail.MapEndpoint(app);
-LogInteraction.MapEndpoints(app);
+WatchVideo.MapEndpoints(app);
 LikeVideo.MapEndpoint(app);
 UnLikeVideo.MapEndpoint(app);
 
