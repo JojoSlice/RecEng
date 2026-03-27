@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using MassTransit;
 using RecEng.Contracts.Events;
@@ -20,7 +21,9 @@ public static class WatchVideo
         IPublishEndpoint publishEndpoint
     )
     {
-        var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var idClaim = user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrEmpty(idClaim) || !Guid.TryParse(idClaim, out Guid userId))
+            return Results.Unauthorized();
 
         await publishEndpoint.Publish(
             new VideoWatchedEvent(
