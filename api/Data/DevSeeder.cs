@@ -7,9 +7,9 @@ public static class DevSeeder
 {
     private static readonly (string Title, string Description, string[] Tags)[] JojoVideoMetadata =
     [
-        ("Morning Workout", "A quick morning workout routine", ["fitness", "workout", "morning"]),
-        ("Cooking Pasta", "How to cook the perfect pasta", ["cooking", "food", "italian"]),
-        ("City Walk", "Walking through the city center", ["travel", "city", "walk"]),
+        ("Water", "A video of water", ["low fps", "water", "vibe"]),
+        ("Stars", "Lookng at the stars", ["low fps", "stars", "sky", "vibe"]),
+        ("Traffic", "Walking through the city center", ["low fps", "traffic", "city", "vibe"]),
     ];
 
     private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".webp"];
@@ -53,7 +53,10 @@ public static class DevSeeder
         }
         else
         {
-            logger.LogWarning("[DevSeeder] No image file found in {Path}, skipping profile picture", devAssetsPath);
+            logger.LogWarning(
+                "[DevSeeder] No image file found in {Path}, skipping profile picture",
+                devAssetsPath
+            );
         }
 
         var videoFiles = Directory
@@ -76,8 +79,26 @@ public static class DevSeeder
             var destFileName = $"jojo_{i + 1}{Path.GetExtension(videoFiles[i])}";
             var destPath = Path.Combine("uploads", destFileName);
 
-            await using (var src = new FileStream(videoFiles[i], FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true))
-            await using (var dst = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
+            await using (
+                var src = new FileStream(
+                    videoFiles[i],
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read,
+                    81920,
+                    useAsync: true
+                )
+            )
+            await using (
+                var dst = new FileStream(
+                    destPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    81920,
+                    useAsync: true
+                )
+            )
                 await src.CopyToAsync(dst);
 
             var tagNames = meta.Tags.Select(t => t.ToLowerInvariant()).Distinct().ToList();
