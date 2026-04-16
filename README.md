@@ -26,7 +26,15 @@ The `nginx/certs/` directory is gitignored — certificates are generated locall
 
 On first visit the browser will warn that the certificate is not trusted. Click through the warning, or install `nginx/certs/cert.pem` as a trusted certificate on the device.
 
-### 2. Start
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+Fill in `.env` with real values. The file is gitignored and never committed.
+
+### 3. Start
 
 ```bash
 docker compose up --build
@@ -40,7 +48,7 @@ docker compose up --build
 | TimescaleDB         | localhost:5433                |
 | Redis               | localhost:6379                |
 
-RabbitMQ Management credentials: `receng` / `receng`
+RabbitMQ Management credentials: values from `.env`
 
 The API runs migrations and seeds data automatically on startup.
 
@@ -90,6 +98,57 @@ docker compose up --build
 
 ## Configuration
 
-The API reads config from `appsettings.json`. For local development outside Docker, the defaults work as-is (connects to `localhost:5432`).
+All sensitive values are configured via `.env` (see `.env.example`). Docker Compose reads this file automatically on startup.
 
-JWT settings are in `appsettings.json` under `Jwt`. Change the key before deploying.
+For local development outside Docker, `appsettings.json` defaults apply (connects to `localhost:5432`).
+
+## Deployment
+
+Pushes to `main` trigger an automatic deploy via GitHub Actions (`.github/workflows/deploy.yml`). The workflow SSHes into the server, pulls the latest code, writes `.env` from GitHub Secrets, and restarts the containers.
+
+### First-time server setup
+
+```bash
+git clone https://github.com/your-username/RecEng.git ~/RecEng
+cd ~/RecEng
+mkdir -p nginx/certs
+# Generate certificates (see above, using the server's IP)
+docker compose up -d
+```
+
+### GitHub Secrets
+
+Add the following secrets under `Settings → Secrets and variables → Actions`:
+
+| Secret | Description |
+|---|---|
+| `SSH_HOST` | Server IP address |
+| `SSH_USER` | SSH username on the server |
+| `SSH_PRIVATE_KEY` | Private key for SSH access |
+| `POSTGRES_USER` | PostgreSQL username |
+| `POSTGRES_PASSWORD` | PostgreSQL password |
+| `POSTGRES_DB` | PostgreSQL database name |
+| `TIMESCALE_USER` | TimescaleDB username |
+| `TIMESCALE_PASSWORD` | TimescaleDB password |
+| `TIMESCALE_DB` | TimescaleDB database name |
+| `RABBITMQ_USER` | RabbitMQ username |
+| `RABBITMQ_PASSWORD` | RabbitMQ password |
+| `JWT_KEY` | JWT signing key (min 32 characters) |
+| `JWT_ISSUER` | JWT issuer |
+| `JWT_AUDIENCE` | JWT audience |
+
+### SSH key setup
+
+Generate a dedicated deploy key on your local machine:
+
+```bash
+ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/receng_deploy
+```
+
+Add the public key to the server:
+
+```bash
+echo "$(cat ~/.ssh/receng_deploy.pub)" >> ~/.ssh/authorized_keys
+```
+
+Add the contents of `~/.ssh/receng_deploy` (private key) as the `SSH_PRIVATE_KEY` secret in GitHub.

@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:17
     environment:
-      POSTGRES_USER: receng
-      POSTGRES_PASSWORD: receng
-      POSTGRES_DB: receng
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U receng"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,8 +23,11 @@ services:
       - "5000:5000"
     environment:
       ASPNETCORE_URLS: "http://+:5000"
-      ASPNETCORE_ENVIRONMENT: "Development"
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=receng;Username=receng;Password=receng"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
     volumes:
       - ./devAssets:/devAssets:ro
       - uploads_data:/app/uploads
@@ -53,8 +56,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: receng
-      RABBITMQ_DEFAULT_PASS: receng
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -64,16 +67,16 @@ services:
   timescale:
     image: timescale/timescaledb:latest-pg17
     environment:
-      POSTGRES_USER: receng
-      POSTGRES_PASSWORD: receng
-      POSTGRES_DB: analytics
+      POSTGRES_USER: ${TIMESCALE_USER}
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD}
+      POSTGRES_DB: ${TIMESCALE_DB}
     ports:
       - "5433:5432"
     volumes:
       - timescale_data:/var/lib/postgresql/data
       - ./timescale-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U receng -d analytics"]
+      test: ["CMD-SHELL", "pg_isready -U ${TIMESCALE_USER} -d ${TIMESCALE_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -98,10 +101,10 @@ services:
       timescale:
         condition: service_healthy
     environment:
-      ConnectionStrings__Analytics: "Host=timescale;Port=5432;Database=analytics;Username=receng;Password=receng"
+      ConnectionStrings__Analytics: "Host=timescale;Port=5432;Database=${TIMESCALE_DB};Username=${TIMESCALE_USER};Password=${TIMESCALE_PASSWORD}"
       RabbitMq__Host: rabbitmq
-      RabbitMq__Username: receng
-      RabbitMq__Password: receng
+      RabbitMq__Username: ${RABBITMQ_USER}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
 
 volumes:
   postgres_data:

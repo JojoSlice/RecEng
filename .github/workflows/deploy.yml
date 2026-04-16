@@ -1,0 +1,42 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/RecEng
+
+            git pull origin main
+
+            cat > .env <<EOF
+            ASPNETCORE_ENVIRONMENT=Production
+
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+
+            TIMESCALE_USER=${{ secrets.TIMESCALE_USER }}
+            TIMESCALE_PASSWORD=${{ secrets.TIMESCALE_PASSWORD }}
+            TIMESCALE_DB=${{ secrets.TIMESCALE_DB }}
+
+            RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
+            RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+
+            JWT_KEY=${{ secrets.JWT_KEY }}
+            JWT_ISSUER=${{ secrets.JWT_ISSUER }}
+            JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
+            EOF
+
+            docker compose up --build -d
