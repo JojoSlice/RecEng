@@ -34,10 +34,18 @@ services:
 
   client:
     build: ./client
-    ports:
-      - "8080:80"
     depends_on:
       - api
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - client
 
   rabbitmq:
     image: rabbitmq:4-management

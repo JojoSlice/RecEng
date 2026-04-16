@@ -9,18 +9,36 @@
 
 ## Running the project
 
+### 1. Generate TLS certificates (first time only)
+
+HTTPS requires a self-signed certificate. Replace the IP with the local IP of the machine running Docker:
+
+```bash
+mkdir -p nginx/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout nginx/certs/key.pem \
+  -out nginx/certs/cert.pem \
+  -subj "/CN=192.168.1.50" \
+  -addext "subjectAltName=IP:192.168.1.50"
+```
+
+The `nginx/certs/` directory is gitignored — certificates are generated locally and never committed.
+
+On first visit the browser will warn that the certificate is not trusted. Click through the warning, or install `nginx/certs/cert.pem` as a trusted certificate on the device.
+
+### 2. Start
+
 ```bash
 docker compose up --build
 ```
 
-| Service             | URL                    |
-|---------------------|------------------------|
-| Client              | http://localhost:8080  |
-| API                 | http://localhost:5000  |
-| RabbitMQ Management | http://localhost:15672 |
-| Postgres            | localhost:5432         |
-| TimescaleDB         | localhost:5433         |
-| Redis               | localhost:6379         |
+| Service             | URL                          |
+|---------------------|------------------------------|
+| Client              | https://192.168.1.50         |
+| RabbitMQ Management | http://localhost:15672        |
+| Postgres            | localhost:5432                |
+| TimescaleDB         | localhost:5433                |
+| Redis               | localhost:6379                |
 
 RabbitMQ Management credentials: `receng` / `receng`
 

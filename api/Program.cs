@@ -196,7 +196,7 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy
-            .WithOrigins("http://localhost:8080", "http://localhost:5033")
+            .WithOrigins("http://localhost:8080", "http://localhost:5033", "https://localhost", "https://192.168.1.50")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
