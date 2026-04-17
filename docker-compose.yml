@@ -49,6 +49,7 @@ services:
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - client
+      - api
 
   rabbitmq:
     image: rabbitmq:4-management

@@ -18,8 +18,8 @@ mkdir -p nginx/certs
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout nginx/certs/key.pem \
   -out nginx/certs/cert.pem \
-  -subj "/CN=192.168.1.50" \
-  -addext "subjectAltName=IP:192.168.1.50"
+  -subj "/CN=192.168.50.200" \
+  -addext "subjectAltName=IP:192.168.50.200"
 ```
 
 The `nginx/certs/` directory is gitignored — certificates are generated locally and never committed.
