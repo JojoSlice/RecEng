@@ -1,6 +1,14 @@
+using Npgsql;
+using StackExchange.Redis;
+
 namespace recommendation_service;
 
-public class Worker(ILogger<Worker> logger) : BackgroundService
+public class Worker(
+    ILogger<Worker> logger,
+    [FromKeyedServices("postgres")] NpgsqlDataSource postgres,
+    [FromKeyedServices("timescale")] NpgsqlDataSource timescale,
+    IConnectionMultiplexer redis
+) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
