@@ -1,4 +1,6 @@
+using Npgsql;
 using recommendation_service;
+using StackExchange.Redis;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
