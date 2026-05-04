@@ -54,6 +54,30 @@ public class Worker(
                     return g.ToDictionary(w => w.VideoId, w => (double)w.TotalWatchSeconds / max);
                 }
             );
+
+        var uniqueTags = videos.SelectMany(v => v.Tags).Distinct().ToList();
+
+        var tagVectors = videos
+            .Select(v => new
+            {
+                VideoId = v.Id,
+                Vector = uniqueTags.Select(tag => v.Tags.Contains(tag) ? 1.0 : 0.0).ToArray(),
+            })
+            .ToList();
+
+        var videoTags = videos.ToDictionary(v => v.Id, v => v.Tags);
+        var userWatchHistory = watchHistory.GroupBy(w => w.UserId);
+
+        var userTagVectors = userWatchHistory.ToDictionary(
+            g => g.Key,
+            g =>
+            {
+                var seenTags = g.Where(w => videoTags.ContainsKey(w.VideoId))
+                    .SelectMany(w => videoTags[w.VideoId])
+                    .ToHashSet();
+                return uniqueTags.Select(tag => seenTags.Contains(tag) ? 1.0 : 0.0).ToArray();
+            }
+        );
     }
 
     record VideoScore(Guid VideoId, double TrendingScore);
