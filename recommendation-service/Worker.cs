@@ -14,13 +14,38 @@ public class Worker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            }
-            await Task.Delay(1000, stoppingToken);
+            await ComputeFeeds(stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
         }
     }
+
+    private async Task ComputeFeeds(CancellationToken ct)
+    {
+        var engagements = await GetEngagementScores(ct);
+        var videos = await GetVideos(ct);
+        var watchHistory = await GetWatchHistory(ct);
+
+        logger.LogInformation(
+            "Fetched {Videos} videos, {Engagements} engagement scores, {WatchEvents} watch events",
+            videos.Count,
+            engagements.Count,
+            watchHistory.Count
+        );
+
+        var engagementByVideoId = engagements.ToDictionary(e => e.VideoId, e => e.EngagementScore);
+
+        var videoScores = new List<VideoScore>();
+
+        foreach (var video in videos)
+        {
+            engagementByVideoId.TryGetValue(video.Id, out var engagementScore);
+            var hoursSinceUpload = (DateTimeOffset.UtcNow - video.CreatedAt).TotalHours;
+            var trendingScore = engagementScore / Math.Pow(hoursSinceUpload + 2, 1.5);
+            videoScores.Add(new VideoScore(video.Id, trendingScore));
+        }
+    }
+
+    record VideoScore(Guid VideoId, double TrendingScore);
 
     private async Task<List<VideoEngagement>> GetEngagementScores(CancellationToken ct)
     {
