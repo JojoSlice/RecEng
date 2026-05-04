@@ -78,9 +78,28 @@ public class Worker(
                 return uniqueTags.Select(tag => seenTags.Contains(tag) ? 1.0 : 0.0).ToArray();
             }
         );
+
+        var tagVectorByVideoId = tagVectors.ToDictionary(t => t.VideoId, t => t.Vector);
+
+        var contentScores = userTagVectors.ToDictionary(
+            kvp => kvp.Key,
+            kvp =>
+                tagVectorByVideoId.ToDictionary(
+                    v => v.Key,
+                    v => CosineSimilarity(kvp.Value, v.Value)
+                )
+        );
     }
 
     record VideoScore(Guid VideoId, double TrendingScore);
+
+    private static double CosineSimilarity(double[] a, double[] b)
+    {
+        var dot = a.Zip(b, (x, y) => x * y).Sum();
+        var magA = Math.Sqrt(a.Sum(x => x * x));
+        var magB = Math.Sqrt(b.Sum(x => x * x));
+        return (magA == 0 || magB == 0) ? 0 : dot / (magA * magB);
+    }
 
     private async Task<List<VideoEngagement>> GetEngagementScores(CancellationToken ct)
     {
