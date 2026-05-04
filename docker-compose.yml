@@ -107,6 +107,22 @@ services:
       RabbitMq__Username: ${RABBITMQ_USER}
       RabbitMq__Password: ${RABBITMQ_PASSWORD}
 
+  recommendation-service:
+    build:
+      context: .
+      dockerfile: recommendation-service/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      timescale:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Timescale: "Host=timescale;Port=5432;Database=${TIMESCALE_DB};Username=${TIMESCALE_USER};Password=${TIMESCALE_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379"
+
 volumes:
   postgres_data:
   uploads_data:
