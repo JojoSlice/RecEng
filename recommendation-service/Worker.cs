@@ -43,6 +43,17 @@ public class Worker(
             var trendingScore = engagementScore / Math.Pow(hoursSinceUpload + 2, 1.5);
             videoScores.Add(new VideoScore(video.Id, trendingScore));
         }
+
+        var watchTimeScores = watchHistory
+            .GroupBy(w => w.UserId)
+            .ToDictionary(
+                g => g.Key,
+                g =>
+                {
+                    var max = g.Max(w => w.TotalWatchSeconds);
+                    return g.ToDictionary(w => w.VideoId, w => (double)w.TotalWatchSeconds / max);
+                }
+            );
     }
 
     record VideoScore(Guid VideoId, double TrendingScore);
