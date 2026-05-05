@@ -89,6 +89,47 @@ public class Worker(
                     v => CosineSimilarity(kvp.Value, v.Value)
                 )
         );
+
+        var allVideoIds = videos.Select(v => v.Id).ToList();
+
+        var userWatchVectors = watchTimeScores.ToDictionary(
+            kvp => kvp.Key,
+            kvp =>
+                allVideoIds.Select(vid => kvp.Value.TryGetValue(vid, out var s) ? s : 0.0).ToArray()
+        );
+
+        var collaborativeScores = new Dictionary<Guid, Dictionary<Guid, double>>();
+
+        foreach (var (userId, userVector) in userWatchVectors)
+        {
+            var similarUsers = userWatchVectors
+                .Where(other => other.Key != userId)
+                .Select(other =>
+                    (UserId: other.Key, Similarity: CosineSimilarity(userVector, other.Value))
+                )
+                .Where(x => x.Similarity > 0)
+                .OrderByDescending(x => x.Similarity)
+                .Take(10)
+                .ToList();
+
+            var totalSimilarity = similarUsers.Sum(x => x.Similarity);
+            var scores = new Dictionary<Guid, double>();
+
+            if (totalSimilarity > 0)
+            {
+                foreach (var video in videos)
+                {
+                    scores[video.Id] =
+                        similarUsers.Sum(su =>
+                        {
+                            watchTimeScores[su.UserId].TryGetValue(video.Id, out var s);
+                            return su.Similarity * s;
+                        }) / totalSimilarity;
+                }
+            }
+
+            collaborativeScores[userId] = scores;
+        }
     }
 
     record VideoScore(Guid VideoId, double TrendingScore);
