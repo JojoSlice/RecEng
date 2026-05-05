@@ -10,6 +10,12 @@ public class Worker(
     IConnectionMultiplexer redis
 ) : BackgroundService
 {
+    private const double Alpha = 0.30; // ContentSimilarity
+    private const double Beta = 0.30; // WatchTime
+    private const double Gamma = 0.20; // Collaborative
+    private const double Delta = 0.15; // Trending
+    private const double Eps = 0.05; // Exploration (slump)
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -129,6 +135,47 @@ public class Worker(
             }
 
             collaborativeScores[userId] = scores;
+        }
+
+        var trendingByVideoId = videoScores.ToDictionary(v => v.VideoId, v => v.TrendingScore);
+
+        var db = redis.GetDatabase();
+
+        foreach (var userId in watchTimeScores.Keys)
+        {
+            contentScores.TryGetValue(userId, out var content);
+            collaborativeScores.TryGetValue(userId, out var collab);
+
+            var feed = videos
+                .Select(v =>
+                {
+                    var collabScore = 0.0;
+                    var contentScore = 0.0;
+                    content?.TryGetValue(v.Id, out contentScore);
+                    watchTimeScores[userId].TryGetValue(v.Id, out var watchTime);
+                    collab?.TryGetValue(v.Id, out collabScore);
+                    trendingByVideoId.TryGetValue(v.Id, out var trending);
+
+                    var final =
+                        Alpha * contentScore
+                        + Beta * watchTime
+                        + Gamma * collabScore
+                        + Delta * trending
+                        + Eps * Random.Shared.NextDouble();
+
+                    return (VideoId: v.Id, Score: final);
+                })
+                .OrderByDescending(x => x.Score)
+                .Take(20)
+                .Select(x => x.VideoId.ToString())
+                .ToArray();
+
+            var key = $"user:{userId}:feed";
+            await db.StringSetAsync(
+                key,
+                System.Text.Json.JsonSerializer.Serialize(feed),
+                TimeSpan.FromMinutes(10)
+            );
         }
     }
 
