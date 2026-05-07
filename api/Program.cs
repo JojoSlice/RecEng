@@ -8,6 +8,7 @@ using api.Features.Videos;
 using api.Options;
 using MassTransit;
 using Serilog;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+);
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!)
 );
 
 builder.Services.AddMassTransit(x =>
@@ -196,7 +201,12 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy
-            .WithOrigins("http://localhost:8080", "http://localhost:5033", "https://localhost", "https://192.168.1.50")
+            .WithOrigins(
+                "http://localhost:8080",
+                "http://localhost:5033",
+                "https://localhost",
+                "https://192.168.1.50"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
