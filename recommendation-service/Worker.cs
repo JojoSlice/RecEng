@@ -20,7 +20,16 @@ public class Worker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await ComputeFeeds(stoppingToken);
+            try
+            {
+                await ComputeFeeds(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "ComputeFeeds failed, retrying in 1 minute");
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                continue;
+            }
             await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
         }
     }

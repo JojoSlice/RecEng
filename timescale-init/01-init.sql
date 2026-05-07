@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS video_interactions (
   CREATE INDEX ON video_interactions (user_id, occurred_at DESC);
 
 CREATE MATERIALIZED VIEW video_engagement_1h
-  WITH (timescaledb.continuous_aggregate = true, timescaledb.materialized_only = false)
+  WITH (timescaledb.continuous = true, timescaledb.materialized_only = false)
   AS
   SELECT
       time_bucket('1 hour', occurred_at) AS bucket,
