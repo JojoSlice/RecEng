@@ -40,8 +40,8 @@ builder.Services.AddMassTransit(x =>
                 "/",
                 h =>
                 {
-                    h.Username("receng");
-                    h.Password("receng");
+                    h.Username("guest");
+                    h.Password("guest");
                 }
             );
         }
