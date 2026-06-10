@@ -202,10 +202,9 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy
             .WithOrigins(
+                "http://localhost",
                 "http://localhost:8080",
-                "http://localhost:5033",
-                "https://localhost",
-                "https://192.168.1.50"
+                "http://localhost:5033"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -262,7 +261,6 @@ catch (Exception ex)
     app.Logger.LogError(ex, "ffmpeg not found — video upload and thumbnails will not work");
 }
 
-app.UseHttpsRedirection();
 app.UseCors();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
